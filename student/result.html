@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Examination Result - TCIS Entrance Portal</title>
+    <meta name="description" content="Your official TCIS Entrance Examination result, scores, and performance breakdown.">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <style>
+        body { background: #f8fafc; color: #0f172a; }
+
+        .result-header {
+            background: #ffffff;
+            border-bottom: 1px solid #e2e8f0;
+            box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+        }
+
+        .score-card {
+            background: #ffffff;
+            border-radius: 1.5rem;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.07);
+        }
+
+        .stat-box {
+            background: #f8fafc;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 1rem;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .answer-row {
+            border-radius: 0.875rem;
+            padding: 1rem 1.125rem;
+            border: 1.5px solid #e2e8f0;
+            transition: all .2s;
+            margin-bottom: 0.75rem;
+        }
+        .answer-row.correct  { border-color: #bbf7d0; background: #f0fdf4; }
+        .answer-row.wrong    { border-color: #fecaca; background: #fff5f5; }
+        .answer-row.manual   { border-color: #fed7aa; background: #fff7ed; }
+        .answer-row.pending  { border-color: #e2e8f0; background: #f8fafc; }
+        .answer-row.skipped  { border-color: #e2e8f0; background: #f8fafc; opacity: 0.75; }
+
+        .grade-ring {
+            width: 7rem; height: 7rem;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2.25rem; font-weight: 900;
+            border: 6px solid;
+        }
+
+        .proctor-badge {
+            display: inline-flex; align-items: center; gap: 0.375rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 999px; font-size: 0.65rem; font-weight: 700;
+        }
+
+        /* Section divider */
+        .section-title {
+            font-size: 0.75rem; font-weight: 800;
+            text-transform: uppercase; letter-spacing: 0.08em;
+            color: #94a3b8;
+            display: flex; align-items: center; gap: 0.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #f1f5f9;
+            margin-bottom: 0.875rem;
+        }
+
+        @media print {
+            .no-print { display: none !important; }
+            body { background: #fff; color: #0f172a; font-size: 11pt; }
+            .score-card { box-shadow: none; border: 1px solid #cbd5e1; }
+            .answer-row { break-inside: avoid; }
+            .result-header { box-shadow: none; border-bottom: 1px solid #e2e8f0; }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between unselectable">
+
+    <!-- Header -->
+    <header class="result-header w-full px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <div class="bg-blue-600 p-1.5 rounded-xl shadow-sm">
+                <img src="../TCIS-Logo.png" alt="TCIS Logo" class="h-10 w-auto object-contain">
+            </div>
+            <div class="border-l border-slate-200 pl-3">
+                <div class="text-xs font-bold text-slate-900">TCIS Entrance Portal</div>
+                <div class="text-[10px] text-slate-500">Official Examination Result</div>
+            </div>
+        </div>
+        <div id="student-badge-result" class="text-right text-xs"></div>
+    </header>
+
+    <main class="w-full max-w-4xl mx-auto px-4 sm:px-6 py-8 flex-1">
+
+        <!-- Result Card -->
+        <div class="score-card p-6 sm:p-8 space-y-8">
+
+            <!-- ── Hero Section ───────────────────────────── -->
+            <div class="text-center">
+                <div id="result-icon" class="w-20 h-20 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-4xl mx-auto mb-4 border-2 border-emerald-200">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+                <h1 id="exam-title-result" class="text-2xl sm:text-3xl font-extrabold text-slate-900 font-heading">Examination Completed</h1>
+                <p id="submitted-at-result" class="text-slate-400 text-xs mt-1 font-mono"></p>
+
+                <!-- Proctoring & Duration badges -->
+                <div id="meta-badges" class="flex items-center justify-center flex-wrap gap-2 mt-3"></div>
+            </div>
+
+            <!-- ── Score Summary Grid ───────────────────────── -->
+            <div id="scores-grid" class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div class="stat-box">
+                    <span class="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Total Score</span>
+                    <p id="res-score" class="text-2xl font-black text-slate-900 mt-1">— / —</p>
+                </div>
+                <div class="stat-box">
+                    <span class="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Percentage</span>
+                    <p id="res-percentage" class="text-2xl font-black text-indigo-600 mt-1">—%</p>
+                </div>
+                <div class="stat-box">
+                    <span class="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Letter Grade</span>
+                    <p id="res-grade" class="text-2xl font-black text-amber-500 mt-1">—</p>
+                </div>
+                <div class="stat-box">
+                    <span class="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Status</span>
+                    <p id="res-status" class="text-2xl font-black mt-1">—</p>
+                </div>
+            </div>
+
+            <!-- ── Attempt Statistics ───────────────────────── -->
+            <div id="attempt-stats" class="grid grid-cols-3 gap-3"></div>
+
+            <!-- ── Pending Admin Release Notice ───────────────── -->
+            <div id="pending-release-box" class="hidden bg-amber-50 border border-amber-200 p-5 rounded-2xl text-center">
+                <i class="fa-solid fa-clock-rotate-left text-amber-500 text-2xl mb-2"></i>
+                <h4 class="text-sm font-bold text-amber-700">Result Pending Administrative Release</h4>
+                <p id="pending-release-msg" class="text-xs text-slate-600 mt-1">Your essay response is saved securely. Your full grade will be released after teacher review.</p>
+            </div>
+
+            <!-- ── Performance Breakdown ───────────────────────── -->
+            <div id="question-review-container" class="space-y-4">
+                <div class="section-title">
+                    <i class="fa-solid fa-square-check text-indigo-400"></i>
+                    Performance Breakdown
+                    <span id="review-count-badge" class="ml-auto text-indigo-400 font-mono text-[11px] font-semibold normal-case tracking-normal"></span>
+                </div>
+                <div id="answers-review-list" class="space-y-0">
+                    <!-- Answer breakdown rendered by JS -->
+                </div>
+            </div>
+
+            <!-- ── Action Buttons ───────────────────────────── -->
+            <div class="pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 no-print">
+                <button onclick="window.TCISAuth.logoutStudent()" id="btn-return-login"
+                    class="w-full sm:w-auto px-6 py-3 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs font-semibold transition-all flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-right-from-bracket"></i> Return to Login
+                </button>
+                <button onclick="window.print()" id="btn-print-result"
+                    class="w-full sm:w-auto px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-lg shadow-indigo-600/20 flex items-center justify-center gap-2 transition-all">
+                    <i class="fa-solid fa-print"></i>
+                    <span>Print Result Summary</span>
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <footer class="w-full text-center py-4 text-xs text-slate-400">
+        &copy; 2026 TCIS Admissions &amp; Entrance Examination Portal. All rights reserved.
+    </footer>
+
+    <script src="../js/utils.js"></script>
+    <!-- Firebase Web SDK v10 (Compat Mode) -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics-compat.js"></script>
+    <script src="../js/firebase-config.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/results.js"></script>
+    <script>
+        // ── Helper: format seconds as "Xh Ym Zs" ────────────────────
+        function formatDuration(seconds) {
+            if (!seconds || seconds <= 0) return '—';
+            const h = Math.floor(seconds / 3600);
+            const m = Math.floor((seconds % 3600) / 60);
+            const s = seconds % 60;
+            if (h > 0) return `${h}h ${m}m ${s}s`;
+            if (m > 0) return `${m}m ${s}s`;
+            return `${s}s`;
+        }
+
+        // ── Format student answer for display ───────────────────────
+        function formatAnswerDisplay(ans) {
+            if (ans === undefined || ans === null || ans === '') return '<em class="text-slate-400">No answer given</em>';
+            if (Array.isArray(ans)) return ans.length ? window.TCISUtils.escapeHTML(ans.join(', ')) : '<em class="text-slate-400">No answer given</em>';
+            if (typeof ans === 'object') {
+                return Object.entries(ans).map(([k, v]) => `${window.TCISUtils.escapeHTML(k)} → ${window.TCISUtils.escapeHTML(v)}`).join('<br>');
+            }
+            return window.TCISUtils.escapeHTML(String(ans));
+        }
+
+        // ── Format correct answer for display ────────────────────────
+        function formatCorrectDisplay(ans) {
+            if (ans === undefined || ans === null || ans === '') return '—';
+            if (typeof ans === 'string') return window.TCISUtils.escapeHTML(ans);
+            if (Array.isArray(ans)) return window.TCISUtils.escapeHTML(ans.join(', '));
+            if (typeof ans === 'object') {
+                return Object.entries(ans).map(([k, v]) => `${window.TCISUtils.escapeHTML(k)} → ${window.TCISUtils.escapeHTML(v)}`).join('<br>');
+            }
+            return window.TCISUtils.escapeHTML(String(ans));
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!window.TCISAuth.requireStudentAuth()) return;
+            const student = window.TCISAuth.getCurrentStudent();
+
+            document.getElementById('student-badge-result').innerHTML = `
+                <span class="text-xs font-bold text-slate-900 block">${window.TCISUtils.escapeHTML(student.fullName || (student.firstName + ' ' + student.lastName))}</span>
+                <span class="text-[10px] text-indigo-500 font-mono">${window.TCISUtils.escapeHTML(student.studentId)}</span>
+            `;
+
+            // Load student's result record
+            const results = window.TCISDB.getCollection('results');
+            const myResult = results.find(r => r.studentId === student.studentId);
+
+            if (!myResult) {
+                // No result yet — show processing state
+                document.getElementById('result-icon').innerHTML = '<i class="fa-solid fa-clock-rotate-left"></i>';
+                document.getElementById('result-icon').className = 'w-20 h-20 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center text-4xl mx-auto mb-4 border-2 border-amber-200';
+                document.getElementById('exam-title-result').innerText = 'Your result is being processed.';
+                document.getElementById('submitted-at-result').innerText = 'Please check back later or contact your administrator.';
+                document.getElementById('question-review-container').classList.add('hidden');
+                document.getElementById('attempt-stats').classList.add('hidden');
+                return;
+            }
+
+            // ── Fill top metadata ────────────────────────────────────
+            document.getElementById('exam-title-result').innerText = myResult.examTitle || 'TCIS Entrance Examination';
+            const submittedDate = myResult.submittedAt
+                ? new Date(myResult.submittedAt).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })
+                : '';
+            document.getElementById('submitted-at-result').innerText = `Submitted: ${submittedDate}`;
+
+            // Duration & proctoring badges
+            const metaBadges = document.getElementById('meta-badges');
+            const badgeHTML = [];
+            if (myResult.durationSeconds) {
+                badgeHTML.push(`<span class="proctor-badge bg-indigo-50 border border-indigo-200 text-indigo-600"><i class="fa-solid fa-stopwatch mr-1"></i>Time Taken: ${formatDuration(myResult.durationSeconds)}</span>`);
+            }
+            if (myResult.snapshotCount > 0) {
+                badgeHTML.push(`<span class="proctor-badge bg-emerald-50 border border-emerald-200 text-emerald-600"><i class="fa-solid fa-camera mr-1"></i>${myResult.snapshotCount} Snapshots</span>`);
+            }
+            if (myResult.tabSwitchCount > 0) {
+                const tabColor = myResult.tabSwitchCount >= 3 ? 'rose' : 'amber';
+                badgeHTML.push(`<span class="proctor-badge bg-${tabColor}-50 border border-${tabColor}-200 text-${tabColor}-600"><i class="fa-solid fa-triangle-exclamation mr-1"></i>${myResult.tabSwitchCount} Tab Switch${myResult.tabSwitchCount > 1 ? 'es' : ''}</span>`);
+            }
+            metaBadges.innerHTML = badgeHTML.join('');
+
+            const isReleased = myResult.status === 'Released';
+
+            if (isReleased) {
+                // ── Released: show full scores ───────────────────────
+                document.getElementById('res-score').innerText = `${myResult.marksObtained} / ${myResult.totalMarks}`;
+                document.getElementById('res-percentage').innerText = `${myResult.percentage}%`;
+                document.getElementById('res-grade').innerText = myResult.grade || '—';
+
+                const statusEl = document.getElementById('res-status');
+                statusEl.innerText = myResult.passStatus || '—';
+                if (myResult.passStatus === 'PASS') {
+                    statusEl.className = 'text-2xl font-black text-emerald-500 mt-1';
+                    document.getElementById('result-icon').innerHTML = '<i class="fa-solid fa-circle-check"></i>';
+                    document.getElementById('result-icon').className = 'w-20 h-20 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-4xl mx-auto mb-4 border-2 border-emerald-200';
+                } else if (myResult.passStatus === 'FAIL') {
+                    statusEl.className = 'text-2xl font-black text-rose-500 mt-1';
+                    document.getElementById('result-icon').innerHTML = '<i class="fa-solid fa-circle-xmark"></i>';
+                    document.getElementById('result-icon').className = 'w-20 h-20 rounded-full bg-rose-100 text-rose-500 flex items-center justify-center text-4xl mx-auto mb-4 border-2 border-rose-200';
+                }
+            } else {
+                // ── Pending: hide scores ──────────────────────────────
+                document.getElementById('res-score').innerText = 'Pending';
+                document.getElementById('res-percentage').innerText = '—';
+                document.getElementById('res-grade').innerText = '—';
+                document.getElementById('res-status').innerText = 'Pending';
+                document.getElementById('res-status').className = 'text-2xl font-black text-amber-500 mt-1';
+                document.getElementById('result-icon').innerHTML = '<i class="fa-solid fa-clock-rotate-left"></i>';
+                document.getElementById('result-icon').className = 'w-20 h-20 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center text-4xl mx-auto mb-4 border-2 border-amber-200';
+
+                const pendingBox = document.getElementById('pending-release-box');
+                pendingBox.classList.remove('hidden');
+
+                if (!myResult.isEssayGraded) {
+                    document.getElementById('pending-release-msg').innerText = 'Your essay response is saved securely. Your full grade will be released after teacher review.';
+                } else {
+                    document.getElementById('pending-release-msg').innerText = 'Your result has been graded and is pending administrative release.';
+                }
+
+                // Hide the question review to prevent leaking answers while pending
+                document.getElementById('question-review-container').classList.add('hidden');
+            }
+
+            // ── Attempt Statistics ────────────────────────────────────
+            const total = myResult.totalQuestions || 0;
+            const attempted = myResult.attemptedCount || 0;
+            const unanswered = myResult.unansweredCount != null ? myResult.unansweredCount : (total - attempted);
+            const flagged = myResult.flaggedCount || 0;
+
+            document.getElementById('attempt-stats').innerHTML = `
+                <div class="stat-box">
+                    <span class="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Answered</span>
+                    <p class="text-xl font-black text-emerald-600 mt-1">${attempted} <span class="text-xs font-semibold text-slate-400">/ ${total}</span></p>
+                </div>
+                <div class="stat-box">
+                    <span class="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Unanswered</span>
+                    <p class="text-xl font-black ${unanswered > 0 ? 'text-rose-500' : 'text-slate-400'} mt-1">${unanswered}</p>
+                </div>
+                <div class="stat-box">
+                    <span class="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Flagged</span>
+                    <p class="text-xl font-black ${flagged > 0 ? 'text-amber-500' : 'text-slate-400'} mt-1">${flagged}</p>
+                </div>
+            `;
+
+            // ── Answer Breakdown (only if released) ──────────────────
+            const reviewList = document.getElementById('answers-review-list');
+
+            if (isReleased && myResult.answers && myResult.answers.length > 0) {
+                document.getElementById('review-count-badge').innerText = `${myResult.answers.length} Questions`;
+
+                reviewList.innerHTML = myResult.answers.map((ans, idx) => {
+                    let rowClass = 'answer-row';
+                    let badge = '';
+                    let statusIcon = '';
+
+                    if (ans.requiresManualGrading) {
+                        rowClass += ' manual';
+                        badge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-600"><i class="fa-solid fa-pen-nib mr-1"></i>Manual Review</span>`;
+                        statusIcon = '<i class="fa-solid fa-pen-nib text-amber-500 mt-0.5 shrink-0"></i>';
+                    } else if (ans.studentAnswer === undefined || ans.studentAnswer === null || ans.studentAnswer === '' || (Array.isArray(ans.studentAnswer) && ans.studentAnswer.length === 0)) {
+                        rowClass += ' skipped';
+                        badge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-500"><i class="fa-solid fa-minus mr-1"></i>0 / ${ans.maxMarks} Marks</span>`;
+                        statusIcon = '<i class="fa-solid fa-minus text-slate-400 mt-0.5 shrink-0"></i>';
+                    } else if (ans.isCorrect) {
+                        rowClass += ' correct';
+                        badge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-600"><i class="fa-solid fa-check mr-1"></i>${ans.marksAwarded} / ${ans.maxMarks} Marks</span>`;
+                        statusIcon = '<i class="fa-solid fa-check-circle text-emerald-500 mt-0.5 shrink-0"></i>';
+                    } else {
+                        // Wrong but attempted
+                        const partial = ans.marksAwarded > 0;
+                        rowClass += ' wrong';
+                        badge = `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-600"><i class="fa-solid fa-xmark mr-1"></i>${ans.marksAwarded} / ${ans.maxMarks} Marks</span>`;
+                        statusIcon = partial
+                            ? '<i class="fa-solid fa-circle-half-stroke text-amber-500 mt-0.5 shrink-0"></i>'
+                            : '<i class="fa-solid fa-circle-xmark text-rose-500 mt-0.5 shrink-0"></i>';
+                    }
+
+                    // Subject label (if available)
+                    const subjectLabel = ans.subject
+                        ? `<span class="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-indigo-50 text-indigo-400 border border-indigo-100">${window.TCISUtils.escapeHTML(ans.subject)}</span>`
+                        : '';
+
+                    // Type label
+                    const typeLabel = ans.type
+                        ? `<span class="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-slate-100 text-slate-400">${ans.type.replace('_', ' ')}</span>`
+                        : '';
+
+                    // Your answer
+                    const yourAnswerHtml = formatAnswerDisplay(ans.studentAnswer);
+
+                    // Correct answer (only for objective, not essay/pending)
+                    let correctAnswerSection = '';
+                    if (!ans.requiresManualGrading && ans.correctAnswer !== undefined && ans.correctAnswer !== null) {
+                        correctAnswerSection = `
+                            <div class="bg-white/70 rounded-lg p-2.5 border border-slate-100">
+                                <span class="font-semibold text-slate-500 block text-[10px] uppercase tracking-wider mb-1">Correct Answer</span>
+                                <span class="text-slate-800 text-xs font-medium">${formatCorrectDisplay(ans.correctAnswer)}</span>
+                            </div>`;
+                    } else if (ans.requiresManualGrading) {
+                        // Teacher comments (if graded)
+                        if (ans.teacherComments) {
+                            correctAnswerSection = `
+                                <div class="bg-white/70 rounded-lg p-2.5 border border-amber-100">
+                                    <span class="font-semibold text-amber-600 block text-[10px] uppercase tracking-wider mb-1"><i class="fa-solid fa-chalkboard-user mr-1"></i>Teacher Comment</span>
+                                    <span class="text-slate-700 text-xs italic">${window.TCISUtils.escapeHTML(ans.teacherComments)}</span>
+                                </div>`;
+                        }
+                    }
+
+                    // Explanation (if available)
+                    const explanationHtml = (ans.explanation && !ans.requiresManualGrading)
+                        ? `<div class="mt-2.5 bg-blue-50 border border-blue-100 rounded-lg px-3 py-2 text-xs text-blue-700 flex gap-2 items-start">
+                               <i class="fa-solid fa-lightbulb text-blue-400 mt-0.5 shrink-0"></i>
+                               <span><strong>Explanation:</strong> ${window.TCISUtils.escapeHTML(ans.explanation)}</span>
+                           </div>`
+                        : '';
+
+                    return `
+                        <div class="${rowClass}">
+                            <div class="flex items-start justify-between gap-3 mb-2.5">
+                                <div class="flex items-start gap-2 flex-1 min-w-0">
+                                    ${statusIcon}
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-center flex-wrap gap-1.5 mb-1">
+                                            <span class="text-[10px] font-bold text-slate-400">Q${idx + 1}</span>
+                                            ${subjectLabel}
+                                            ${typeLabel}
+                                        </div>
+                                        <span class="text-sm font-semibold text-slate-800 leading-snug">${window.TCISUtils.escapeHTML(ans.questionText)}</span>
+                                    </div>
+                                </div>
+                                <div class="shrink-0">${badge}</div>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                                <div class="bg-white/70 rounded-lg p-2.5 border border-slate-100">
+                                    <span class="font-semibold text-slate-500 block text-[10px] uppercase tracking-wider mb-1">Your Answer</span>
+                                    <span class="text-slate-800">${yourAnswerHtml}</span>
+                                </div>
+                                ${correctAnswerSection}
+                            </div>
+                            ${explanationHtml}
+                            ${ans.feedback && !ans.requiresManualGrading ? `<p class="text-[11px] text-slate-400 mt-2 italic flex items-center gap-1"><i class="fa-solid fa-circle-info text-indigo-300"></i>${window.TCISUtils.escapeHTML(ans.feedback)}</p>` : ''}
+                        </div>
+                    `;
+                }).join('');
+            } else if (!isReleased) {
+                // Already handled above (hidden)
+            } else {
+                reviewList.innerHTML = `<p class="text-sm text-slate-400 text-center py-6">No answer breakdown available.</p>`;
+            }
+        });
+    </script>
+</body>
+</html>

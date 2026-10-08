@@ -1,0 +1,243 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ============================================================
+    // ADMIN HELPER
+    // ============================================================
+    // Any authenticated Firebase user is treated as an admin.
+
+    function isAdmin() {
+      return request.auth != null;
+    }
+
+
+    // ============================================================
+    // ===================== VOTING SYSTEM ========================
+    // ============================================================
+
+    match /settings/{docId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /aspirants/{aspirantId} {
+      allow read: if true;
+      allow create: if isAdmin();
+      allow delete: if isAdmin();
+      allow update: if isAdmin()
+        || (
+          request.resource.data.diff(resource.data)
+            .affectedKeys().hasOnly(['votes'])
+          && resource.data.votes is int
+          && request.resource.data.votes is int
+          && request.resource.data.votes == resource.data.votes + 1
+        );
+    }
+
+    match /tokens/{tokenId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin();
+      allow delete: if isAdmin();
+      allow update: if isAdmin()
+        || (
+          resource.data.used == false
+          && request.resource.data.used == true
+          && request.resource.data.diff(resource.data)
+            .affectedKeys().hasOnly(['used'])
+        );
+    }
+
+
+    // ============================================================
+    // ===================== LIBRARY SYSTEM =======================
+    // ============================================================
+
+    match /library_categories/{categoryId} {
+      allow read: if true;
+      allow create, update, delete: if true;
+    }
+
+    match /books/{bookId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /library_books/{bookId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /rentals/{rentalId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /library_borrowings/{borrowingId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+
+    // ============================================================
+    // ============ TCIS ENTRANCE EXAMINATION PORTAL ==============
+    // ============================================================
+    // Students authenticate via Student ID + Exam ID/Passkey
+    // (not Firebase Auth). Public reads/writes below support
+    // that unauthenticated student flow.
+    // Admins (any signed-in Firebase user) have full access.
+    // NOTE: /settings is already covered by the voting rule above.
+
+    // ------------------------------------------------------------
+    // Admin account metadata (display names, roles)
+    // ------------------------------------------------------------
+    match /admins/{adminId} {
+      allow read, create, update, delete: if isAdmin();
+    }
+
+    match /pendingAdmins/{docId} {
+      allow create: if true;
+      allow read, update, delete: if isAdmin();
+    }
+
+    // ------------------------------------------------------------
+    // Student profiles & exam assignments
+    // Public read: student login page looks up studentId + passkey
+    // Public create/update: admin portal creates students & client sync
+    // ------------------------------------------------------------
+    match /students/{studentId} {
+      allow read: if true;
+      allow create, update: if true;
+      allow delete: if isAdmin();
+    }
+
+    // ------------------------------------------------------------
+    // Subject categories for question bank organisation
+    // ------------------------------------------------------------
+    match /subjects/{subjectId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    // ------------------------------------------------------------
+    // Question bank (questions used to build exams)
+    // Public read: live exam page fetches questions for students
+    // ------------------------------------------------------------
+    match /questionBank/{questionId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    // ------------------------------------------------------------
+    // Examination definitions (title, duration, subject, config)
+    // Public read: student exam page loads exam metadata
+    // ------------------------------------------------------------
+    match /examinations/{examId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    // ------------------------------------------------------------
+    // Exam assignments (links students to examinations)
+    // Public read: student login verifies assignment
+    // ------------------------------------------------------------
+    match /examAssignments/{assignId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    // ------------------------------------------------------------
+    // Live exam sessions (created when student starts an exam)
+    // Full public access: students open/update/close sessions
+    // ------------------------------------------------------------
+    match /examSessions/{sessionId} {
+      allow read, write: if true;
+    }
+
+    // ------------------------------------------------------------
+    // Student answers (submitted during exam by student client)
+    // Public create/update: students submit answers live
+    // Admin read/delete: grading and data management
+    // ------------------------------------------------------------
+    match /answers/{answerId} {
+      allow create, update: if true;
+      allow read, delete: if isAdmin();
+    }
+
+    // ------------------------------------------------------------
+    // Examination results (scores, grades, percentages)
+    // Public read: students view their own results
+    // Public create/update: results computed client-side on exam submit
+    // Admin delete: manual result deletion
+    // ------------------------------------------------------------
+    match /results/{resultId} {
+      allow read: if true;
+      allow create, update: if true;
+      allow delete: if isAdmin();
+    }
+
+    // ------------------------------------------------------------
+    // Proctoring / monitoring session metadata
+    // Students write their own monitoring data during exam
+    // ------------------------------------------------------------
+    match /monitoringSessions/{sessionId} {
+      allow create, update: if true;
+      allow read, delete: if isAdmin();
+    }
+
+    // Proctoring camera snapshot images
+    match /monitoringImages/{imageId} {
+      allow create, update: if true;
+      allow read, delete: if isAdmin();
+    }
+
+    // Academic integrity violation records
+    match /violations/{violationId} {
+      allow create, update: if true;
+      allow read, delete: if isAdmin();
+    }
+
+    // ------------------------------------------------------------
+    // Grading scale configuration (editable from Settings page)
+    // ------------------------------------------------------------
+    match /gradingScale/{docId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    // ------------------------------------------------------------
+    // Audit & email logs
+    // Public create: both students and admins generate audit events
+    // ------------------------------------------------------------
+    match /auditLogs/{logId} {
+      allow read: if isAdmin();
+      allow create: if true;
+      allow delete: if isAdmin();
+    }
+
+    match /emailLogs/{emailId} {
+      allow read, create: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // System reset audit trail (tracks clearAllData operations)
+    match /systemResetLogs/{logId} {
+      allow create, read: if isAdmin();
+    }
+
+
+    // ============================================================
+    // BLOCK EVERYTHING ELSE
+    // ============================================================
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

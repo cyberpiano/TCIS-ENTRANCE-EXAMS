@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal Settings - TCIS Entrance Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex">
+
+    <div id="admin-sidebar-container"></div>
+
+    <div class="flex-1 ml-64 p-8 overflow-y-auto">
+        <div class="flex items-center justify-between mb-8 pb-4 border-b border-slate-200">
+            <div>
+                <h1 class="text-3xl font-extrabold text-slate-900 font-heading">Portal System Settings</h1>
+                <p class="text-slate-500 text-xs mt-1">Configure institutional details, Brevo & ImgBB API credentials, grading scales, and proctoring thresholds.</p>
+            </div>
+            <button onclick="savePortalSettings()" class="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-lg shadow-indigo-600/30 flex items-center gap-2">
+                <i class="fa-solid fa-floppy-disk"></i> Save Settings
+            </button>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            
+            <!-- School & API Credentials -->
+            <div class="glass-panel p-6 rounded-3xl border border-slate-200 shadow-2xl space-y-4">
+                <h3 class="text-base font-bold text-slate-900 font-heading border-b border-slate-200 pb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-school text-indigo-400"></i> Institutional & API Configuration
+                </h3>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">School Name</label>
+                    <input type="text" id="set-school-name" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-xs">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">Admissions Email</label>
+                    <input type="email" id="set-school-email" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-xs">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">Brevo API Key (Transactional Email)</label>
+                    <input type="password" id="set-brevo-key" placeholder="xkeysib-..." class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-xs font-mono">
+                    <p class="text-[10px] text-slate-500 mt-1">Leave empty to use simulated email logs in local development store.</p>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">ImgBB API Key (Student Image Snapshots)</label>
+                    <input type="password" id="set-imgbb-key" placeholder="API key..." class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-xs font-mono">
+                </div>
+            </div>
+
+            <!-- Violation Thresholds & Grading Scale -->
+            <div class="glass-panel p-6 rounded-3xl border border-slate-200 shadow-2xl space-y-4">
+                <h3 class="text-base font-bold text-slate-900 font-heading border-b border-slate-200 pb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-sliders text-indigo-400"></i> Proctoring Thresholds & Grading System
+                </h3>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">Max Violations before Auto-Submit</label>
+                        <input type="number" id="set-max-violations" value="5" min="1" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-xs">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">Default Result Visibility</label>
+                        <select id="set-result-vis" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-black text-xs">
+                            <option value="Immediately" class="text-black bg-white">Immediately</option>
+                            <option value="After Exam Closes" class="text-black bg-white">After Exam Closes</option>
+                            <option value="Manual Release" class="text-black bg-white">Manual Release</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="block text-xs font-semibold text-slate-500">Grading System Rules</label>
+                        <button onclick="addGradeRule()" class="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded text-[10px] font-bold"><i class="fa-solid fa-plus"></i> Add Rule</button>
+                    </div>
+                    <div id="grading-rules-container" class="space-y-2 text-xs">
+                        <!-- Rendered by JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Danger Zone -->
+        <div class="glass-panel p-6 rounded-3xl border border-rose-200 shadow-2xl mt-8">
+            <h3 class="text-base font-bold text-rose-600 font-heading border-b border-rose-100 pb-3 flex items-center gap-2 mb-4">
+                <i class="fa-solid fa-triangle-exclamation"></i> Danger Zone
+            </h3>
+            <div class="flex items-center justify-between bg-rose-50 p-4 rounded-xl border border-rose-100">
+                <div>
+                    <h4 class="font-bold text-slate-900 text-sm">Reset System Data</h4>
+                    <p class="text-xs text-slate-600 mt-1">Clear all local database records and restore the initial seed data. This is useful for testing.</p>
+                </div>
+                <button onclick="resetSystemData()" class="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs shadow-lg shadow-rose-600/30 transition-all flex items-center gap-2">
+                    <i class="fa-solid fa-rotate-left"></i> Reset Data
+                </button>
+            </div>
+        </div>
+
+        <!-- Firebase Admin Users Management -->
+        <div class="glass-panel p-6 rounded-3xl border border-slate-200 shadow-2xl mt-8">
+            <div class="flex items-center justify-between border-b border-slate-200 pb-4 mb-5">
+                <h3 class="text-base font-bold text-slate-900 font-heading flex items-center gap-2">
+                    <i class="fa-brands fa-google text-indigo-400"></i> Firebase Admin Users
+                </h3>
+                <a href="https://console.firebase.google.com/project/tcis-b5133/authentication/users" target="_blank"
+                    class="px-4 py-2 rounded-xl bg-indigo-600/20 hover:bg-indigo-600 text-indigo-300 hover:text-white text-xs font-semibold border border-indigo-500/30 transition-all flex items-center gap-2">
+                    <i class="fa-solid fa-arrow-up-right-from-square"></i> Firebase Console
+                </a>
+            </div>
+
+            <div class="p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl text-xs text-amber-300 flex items-start gap-3 mb-5">
+                <i class="fa-solid fa-triangle-exclamation text-amber-400 text-sm mt-0.5"></i>
+                <div>
+                    <p class="font-semibold mb-1">Admin accounts are managed in Firebase Authentication.</p>
+                    <p class="text-amber-400/80">To add a new admin: Open the Firebase Console &rarr; Authentication &rarr; Add user (email + password). Then register their display name and role below so the system recognises them.</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Current signed-in admin info -->
+                <div class="space-y-3">
+                    <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider">Currently Signed In</h4>
+                    <div id="current-admin-info" class="p-4 bg-white rounded-xl border border-slate-200 text-xs text-slate-600 space-y-1">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-circle-user text-indigo-400"></i>
+                            <span id="cur-admin-name" class="font-semibold text-slate-900">Loading...</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-envelope text-slate-500"></i>
+                            <span id="cur-admin-email" class="text-slate-500">Loading...</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-tag text-slate-500"></i>
+                            <span id="cur-admin-role" class="text-slate-500">Loading...</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-fingerprint text-slate-500"></i>
+                            <span id="cur-admin-uid" class="font-mono text-[10px] text-slate-500">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Register admin metadata in Firestore -->
+                <div class="space-y-3">
+                    <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider">Register Admin Role in Firestore</h4>
+                    <p class="text-[11px] text-slate-500">After creating a user in Firebase Console, save their role metadata here so the portal can identify them.</p>
+                    <div class="space-y-2">
+                        <input type="email" id="new-admin-email" placeholder="admin@tcis.edu"
+                            class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-xs placeholder-slate-600">
+                        <input type="text" id="new-admin-name" placeholder="Display Name"
+                            class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-xs placeholder-slate-600">
+                        <select id="new-admin-role" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-black text-xs">
+                            <option value="SuperAdmin" class="text-black bg-white">SuperAdmin</option>
+                            <option value="Admin" class="text-black bg-white" selected>Admin</option>
+                            <option value="Examiner" class="text-black bg-white">Examiner</option>
+                            <option value="Viewer" class="text-black bg-white">Viewer</option>
+                        </select>
+                        <button onclick="registerAdminMetadata()" class="w-full py-2.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs transition-all flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-user-shield"></i> Register Admin Metadata
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../js/utils.js"></script>
+    <!-- Firebase Web SDK v10 (Compat Mode) -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics-compat.js"></script>
+    <script src="../js/firebase-config.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/admin.js"></script>
+    <script>
+        let currentGradingScale = [];
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!window.TCISAuth.requireAdminAuth()) return;
+            window.TCISAdmin.renderAdminNavigation('settings');
+
+            const settings = window.TCISDB.getCollection('settings');
+            if (settings) {
+                document.getElementById('set-school-name').value = settings.schoolName || 'TCIS (The Comprehensive International School)';
+                document.getElementById('set-school-email').value = settings.schoolEmail || 'admissions@tcis.edu';
+                document.getElementById('set-brevo-key').value = settings.brevoApiKey || '';
+                document.getElementById('set-imgbb-key').value = settings.imgbbApiKey || '';
+                document.getElementById('set-max-violations').value = (settings.violationThresholds && settings.violationThresholds.maxViolationsAutoSubmit) || 5;
+                document.getElementById('set-result-vis').value = settings.resultVisibility || 'Immediately';
+                
+                currentGradingScale = settings.gradingScale || [
+                    { minScore: 80, maxScore: 100, grade: 'A', status: 'PASS' },
+                    { minScore: 70, maxScore: 79, grade: 'B', status: 'PASS' },
+                    { minScore: 60, maxScore: 69, grade: 'C', status: 'PASS' },
+                    { minScore: 50, maxScore: 59, grade: 'D', status: 'PASS' },
+                    { minScore: 0, maxScore: 49, grade: 'F', status: 'FAIL' }
+                ];
+                renderGradingRules();
+            }
+
+            // Populate current admin info
+            const admin = window.TCISAuth.getCurrentAdmin();
+            if (admin) {
+                document.getElementById('cur-admin-name').textContent = admin.name || 'Administrator';
+                document.getElementById('cur-admin-email').textContent = admin.email || '—';
+                document.getElementById('cur-admin-role').textContent = admin.role || 'Admin';
+                document.getElementById('cur-admin-uid').textContent = admin.uid || admin.adminId || '—';
+            }
+        });
+
+        function renderGradingRules() {
+            const container = document.getElementById('grading-rules-container');
+            container.innerHTML = currentGradingScale.map((rule, index) => `
+                <div class="flex items-center gap-2 p-2 bg-white rounded-xl border border-slate-200">
+                    <input type="text" class="grade-input w-16 p-1.5 border border-slate-200 rounded text-center font-bold" value="${rule.grade}" placeholder="Grade" data-idx="${index}" data-field="grade">
+                    <span class="text-slate-400">-</span>
+                    <select class="grade-input p-1.5 border border-slate-200 rounded" data-idx="${index}" data-field="status">
+                        <option value="PASS" ${rule.status === 'PASS' ? 'selected' : ''}>PASS</option>
+                        <option value="FAIL" ${rule.status === 'FAIL' ? 'selected' : ''}>FAIL</option>
+                    </select>
+                    <span class="text-slate-400 ml-2">Min:</span>
+                    <input type="number" class="grade-input w-16 p-1.5 border border-slate-200 rounded text-center" value="${rule.minScore}" placeholder="0" data-idx="${index}" data-field="minScore">
+                    <span class="text-slate-400">Max:</span>
+                    <input type="number" class="grade-input w-16 p-1.5 border border-slate-200 rounded text-center" value="${rule.maxScore}" placeholder="100" data-idx="${index}" data-field="maxScore">
+                    <button onclick="removeGradeRule(${index})" class="ml-auto text-rose-400 hover:text-rose-600 px-2"><i class="fa-solid fa-trash"></i></button>
+                </div>
+            `).join('');
+            
+            document.querySelectorAll('.grade-input').forEach(input => {
+                input.addEventListener('change', (e) => {
+                    const idx = e.target.getAttribute('data-idx');
+                    const field = e.target.getAttribute('data-field');
+                    let val = e.target.value;
+                    if (field === 'minScore' || field === 'maxScore') val = parseFloat(val) || 0;
+                    currentGradingScale[idx][field] = val;
+                });
+            });
+        }
+
+        function addGradeRule() {
+            currentGradingScale.push({ minScore: 0, maxScore: 0, grade: 'X', status: 'FAIL' });
+            renderGradingRules();
+        }
+
+        function removeGradeRule(index) {
+            currentGradingScale.splice(index, 1);
+            renderGradingRules();
+        }
+
+        function savePortalSettings() {
+            const settings = {
+                schoolName: document.getElementById('set-school-name').value,
+                schoolEmail: document.getElementById('set-school-email').value,
+                brevoApiKey: document.getElementById('set-brevo-key').value,
+                imgbbApiKey: document.getElementById('set-imgbb-key').value,
+                resultVisibility: document.getElementById('set-result-vis').value,
+                violationThresholds: {
+                    maxViolationsAutoSubmit: parseInt(document.getElementById('set-max-violations').value) || 5
+                },
+                gradingScale: currentGradingScale
+            };
+
+            window.TCISDB.saveCollection('settings', settings);
+            window.TCISUtils.showToast('Portal settings saved successfully!', 'success');
+        }
+
+        async function resetSystemData() {
+            if (confirm('⚠️ RESET SYSTEM DATA\n\nThis will permanently erase ALL data in LocalStorage AND Cloud Firestore including:\n• Students, Subjects, Questions\n• Examinations, Assignments, Results\n• Settings & Admin records\n\nThe system will reload with fresh seed data.\n\nAre you sure you want to continue?')) {
+                window.TCISUtils.showToast('Purging Cloud Firestore & local data...', 'info');
+                await window.TCISDB.clearAllData();
+                window.TCISUtils.showToast('System data reset successfully!', 'success');
+                setTimeout(() => {
+                    if (window.TCISAuth && typeof window.TCISAuth.logout === 'function') {
+                        window.TCISAuth.logout();
+                    } else {
+                        window.location.href = '../index.html';
+                    }
+                }, 1000);
+            }
+        }
+
+        async function registerAdminMetadata() {
+            const email = document.getElementById('new-admin-email').value.trim().toLowerCase();
+            const name = document.getElementById('new-admin-name').value.trim();
+            const role = document.getElementById('new-admin-role').value;
+
+            if (!email || !name) {
+                window.TCISUtils.showToast('Please fill in the admin email and display name.', 'warning');
+                return;
+            }
+
+            const db = window.TCISFirestoreInstance;
+            if (!db) {
+                window.TCISUtils.showToast('Firestore not available. Check Firebase connection.', 'error');
+                return;
+            }
+
+            try {
+                // Store by email (UID is unknown from client side without lookup)
+                await db.collection('admins').doc(email).set({
+                    email: email,
+                    name: name,
+                    role: role,
+                    createdAt: new Date().toISOString(),
+                    registeredBy: window.TCISAuth.getCurrentAdmin()?.email || 'System'
+                }, { merge: true });
+
+                window.TCISUtils.showToast(`Admin metadata for ${email} saved to Firestore! Ask them to log in now.`, 'success');
+                document.getElementById('new-admin-email').value = '';
+                document.getElementById('new-admin-name').value = '';
+            } catch (err) {
+                window.TCISUtils.showToast('Failed to save: ' + err.message, 'error');
+            }
+        }
+    </script>
+</body>
+</html>
+
+
+
+

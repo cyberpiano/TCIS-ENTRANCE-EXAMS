@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TCIS Entrance Examination Portal</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="assets/css/main.css">
+    <!-- Firebase Web SDK v10 (Compat Mode) -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics-compat.js"></script>
+</head>
+<body class="bg-white text-slate-900 min-h-screen flex flex-col justify-between relative overflow-x-hidden unselectable">
+
+    <!-- Subtle Accent Background Orbs -->
+    <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+    <!-- Top Navigation Header -->
+    <header class="w-full bg-blue-600 border-b border-blue-700 shadow-md relative z-10">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="bg-blue-700/80 border border-blue-400/40 p-1.5 rounded-xl shadow-inner">
+                    <img src="TCIS-Logo.png" alt="TCIS Logo" class="h-10 w-auto object-contain">
+                </div>
+                <span class="text-white font-bold text-xl tracking-tight hidden sm:block">TCIS Portal</span>
+            </div>
+            <a href="admin/login.html" class="px-4 py-2 rounded-xl bg-blue-500 hover:bg-blue-700 text-white border border-blue-400 text-sm font-semibold shadow-sm transition-all flex items-center gap-2">
+                <i class="fa-solid fa-lock text-blue-200"></i> Admin Login
+            </a>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <main class="w-full max-w-5xl mx-auto px-6 py-12 flex-1 flex flex-col items-center justify-center text-center relative z-10">
+        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs font-bold uppercase tracking-widest mb-6">
+            <i class="fa-solid fa-graduation-cap"></i> TCIS Admissions 2027
+        </div>
+        <h1 class="text-4xl sm:text-6xl font-extrabold text-slate-900 tracking-tight mb-6 font-heading leading-tight">
+            Official Entrance <br class="hidden sm:inline">
+            <span class="bg-gradient-to-r from-indigo-600 via-blue-600 to-amber-500 bg-clip-text text-transparent">Examination Portal</span>
+        </h1>
+        <p class="text-slate-600 text-base sm:text-lg max-w-2xl mx-auto mb-10 leading-relaxed font-normal">
+            Welcome to The Comprehensive International School (TCIS) Online Entrance Examination System. Select your destination below to proceed.
+        </p>
+
+        <!-- Portal Choice Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full max-w-3xl">
+            <!-- Student Portal Choice -->
+            <a href="student/login.html" class="group bg-white p-8 rounded-3xl text-left border border-slate-200 hover:border-indigo-500/60 shadow-xl shadow-slate-200/50 transition-all transform hover:-translate-y-1 flex flex-col justify-between">
+                <div>
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-indigo-600 to-blue-500 flex items-center justify-center text-white text-2xl font-bold mb-6 shadow-lg shadow-indigo-600/20 group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-user-graduate"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-slate-900 mb-2 font-heading">Student Examination</h3>
+                    <p class="text-slate-600 text-sm leading-relaxed mb-6">Log in with your Student ID and Examination Access Code to take your entrance test.</p>
+                </div>
+                <div class="flex items-center text-indigo-600 font-bold text-sm group-hover:text-indigo-700">
+                    <span>Enter Student Portal</span>
+                    <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
+                </div>
+            </a>
+
+            <!-- Admin Portal Choice -->
+            <a href="admin/login.html" class="group bg-white p-8 rounded-3xl text-left border border-slate-200 hover:border-amber-500/60 shadow-xl shadow-slate-200/50 transition-all transform hover:-translate-y-1 flex flex-col justify-between">
+                <div>
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-amber-500 to-amber-600 flex items-center justify-center text-white text-2xl font-bold mb-6 shadow-lg shadow-amber-500/20 group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-user-shield"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-slate-900 mb-2 font-heading">Administrator Portal</h3>
+                    <p class="text-slate-600 text-sm leading-relaxed mb-6">Regulated via Firebase Auth to manage students, build examinations, and review live proctoring.</p>
+                </div>
+                <div class="flex items-center text-amber-600 font-bold text-sm group-hover:text-amber-700">
+                    <span>Access Admin Login</span>
+                    <i class="fa-solid fa-arrow-right ml-2 group-hover:translate-x-1 transition-transform"></i>
+                </div>
+            </a>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="w-full text-center py-6 text-xs text-slate-500 border-t border-slate-100 relative z-10">
+        &copy; 2026 TCIS Admissions & Evaluation Systems. All rights reserved.
+    </footer>
+</body>
+</html>

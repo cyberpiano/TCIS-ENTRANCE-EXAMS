@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exam Builder - TCIS Entrance Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex">
+
+    <div id="admin-sidebar-container"></div>
+
+    <div class="flex-1 ml-64 p-8 overflow-y-auto">
+        
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-8 pb-4 border-b border-slate-200">
+            <div>
+                <a href="examinations.html" class="text-xs text-indigo-400 hover:underline mb-1 inline-block"><i class="fa-solid fa-arrow-left"></i> Back to Examinations</a>
+                <h1 id="builder-page-title" class="text-3xl font-extrabold text-slate-900 font-heading">Visual Exam Builder</h1>
+            </div>
+            <div class="flex items-center gap-3">
+                <button onclick="saveExamination('Draft')" class="px-4 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-600 font-semibold text-xs">Save Draft</button>
+                <button onclick="saveExamination('Open')" class="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-lg shadow-emerald-600/30 flex items-center gap-2">
+                    <i class="fa-solid fa-globe"></i> Publish Examination
+                </button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <!-- Exam Settings & Anti-Cheat Controls Form (Left 2 Columns) -->
+            <div class="lg:col-span-2 space-y-6">
+                
+                <div class="glass-panel p-6 rounded-3xl border border-slate-200 shadow-2xl space-y-4">
+                    <h3 class="text-base font-bold text-slate-900 font-heading border-b border-slate-200 pb-3">Examination Details</h3>
+                    <input type="hidden" id="eb-id">
+
+                    <div class="grid grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-500 mb-1">Examination Title *</label>
+                            <input type="text" id="eb-title" required placeholder="e.g. TCIS 2027 Entrance Exam" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-xs">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-500 mb-1">Subject of Paper *</label>
+                            <select id="eb-subject" onchange="onExamSubjectChange()" required class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-black text-xs">
+                                <option value="" class="text-black bg-white">-- Select Paper Subject --</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-500 mb-1">Exam Code</label>
+                            <input type="text" id="eb-code" placeholder="TCIS-ENT-2027" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-xs uppercase font-mono">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 mb-1">Instructions for Students</label>
+                        <textarea id="eb-instructions" rows="2" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-xs">Ensure your camera is enabled throughout the test.</textarea>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-500 mb-1">Duration (Minutes) *</label>
+                            <input type="number" id="eb-duration" value="60" min="5" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-xs">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-500 mb-1">Pass Mark</label>
+                            <input type="number" id="eb-pass-mark" value="15" min="0" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-xs">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-500 mb-1">Result Visibility</label>
+                            <select id="eb-result-vis" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-black text-xs">
+                                <option value="Immediately" class="text-black bg-white">Immediately</option>
+                                <option value="After Exam Closes" class="text-black bg-white">After Exam Closes</option>
+                                <option value="Manual Release" class="text-black bg-white">Manual Release</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Anti-Cheating & Proctoring Configuration Card -->
+                <div class="glass-panel p-6 rounded-3xl border border-slate-200 shadow-2xl space-y-4">
+                    <h3 class="text-base font-bold text-slate-900 font-heading border-b border-slate-200 pb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-shield-halved text-indigo-400"></i> Anti-Cheating & Proctoring Controls
+                    </h3>
+
+                    <div class="grid grid-cols-2 gap-4 text-xs text-slate-600">
+                        <label class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200 cursor-pointer">
+                            <input type="checkbox" id="eb-cam" checked class="w-4 h-4 text-indigo-600 rounded">
+                            <span>Enable Camera Monitoring</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200 cursor-pointer">
+                            <input type="checkbox" id="eb-auto-submit" checked class="w-4 h-4 text-indigo-600 rounded">
+                            <span>Auto-submit on Time Expiration</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200 cursor-pointer">
+                            <input type="checkbox" id="eb-rand-q" class="w-4 h-4 text-indigo-600 rounded">
+                            <span>Randomize Question Order</span>
+                        </label>
+                        <label class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200 cursor-pointer">
+                            <input type="checkbox" id="eb-rand-opt" checked class="w-4 h-4 text-indigo-600 rounded">
+                            <span>Randomize MCQ Options</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Selected Questions Grid -->
+                <div class="glass-panel p-6 rounded-3xl border border-slate-200 shadow-2xl space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+                        <h3 class="text-base font-bold text-slate-900 font-heading">Included Questions (<span id="selected-q-count">0</span>)</h3>
+                        <span id="total-marks-sum" class="text-xs font-bold text-amber-400 bg-amber-500/10 px-3 py-1 rounded-lg border border-amber-500/20">Total Marks: 0</span>
+                    </div>
+
+                    <div id="selected-questions-list" class="space-y-2">
+                        <!-- Rendered by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Question Picker Panel (Right Column) -->
+            <div class="lg:col-span-1 space-y-6">
+                <div class="glass-panel p-6 rounded-3xl border border-slate-200 shadow-2xl space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+                        <h3 class="text-base font-bold text-slate-900 font-heading">Pick from Question Bank</h3>
+                        <span id="picker-count-badge" class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-600 border border-indigo-100">0 Items</span>
+                    </div>
+
+                    <!-- Subject Filter & Search Bar -->
+                    <div class="space-y-2.5 bg-slate-50 p-3 rounded-2xl border border-slate-200">
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 text-xs"><i class="fa-solid fa-magnifying-glass"></i></span>
+                            <input type="text" id="picker-search" onkeyup="renderPickerList()" placeholder="Filter questions..." class="w-full pl-8 pr-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:border-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Filter by Subject</label>
+                            <select id="picker-filter-subject" onchange="renderPickerList()" class="w-full p-2 bg-white border border-slate-200 rounded-xl text-black text-xs focus:outline-none focus:border-indigo-500">
+                                <option value="" class="text-black bg-white">All Subjects</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="q-picker-list" class="space-y-2 max-h-[450px] overflow-y-auto pr-1">
+                        <!-- Rendered by JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../js/utils.js"></script>
+    <!-- Firebase Web SDK v10 (Compat Mode) -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics-compat.js"></script>
+    <script src="../js/firebase-config.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/questions.js"></script>
+    <script src="../js/exam.js"></script>
+    <script src="../js/admin.js"></script>
+    <script>
+        let selectedQIds = [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!window.TCISAuth.requireAdminAuth()) return;
+            window.TCISAdmin.renderAdminNavigation('examinations');
+
+            // Wait for Firestore sync to complete, then initialize exam builder
+            (window.TCISDB.syncReady || Promise.resolve()).then(() => {
+                initExamBuilder();
+            }).catch(() => {
+                initExamBuilder();
+            });
+        });
+
+        function initExamBuilder() {
+            populateSubjectDropdowns();
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const examId = urlParams.get('id');
+
+            if (examId) {
+                const exam = window.TCISExam.getExamById(examId);
+                if (exam) {
+                    document.getElementById('eb-id').value = exam.id;
+                    document.getElementById('eb-title').value = exam.title;
+                    if (document.getElementById('eb-subject')) document.getElementById('eb-subject').value = exam.subject || 'General';
+                    document.getElementById('eb-code').value = exam.code;
+                    document.getElementById('eb-instructions').value = exam.instructions;
+                    document.getElementById('eb-duration').value = exam.durationMinutes;
+                    document.getElementById('eb-pass-mark').value = exam.passMark;
+                    document.getElementById('eb-result-vis').value = exam.resultVisibility || 'Immediately';
+                    document.getElementById('eb-cam').checked = !!exam.cameraMonitoring;
+                    document.getElementById('eb-auto-submit').checked = !!exam.autoSubmit;
+                    document.getElementById('eb-rand-q').checked = !!exam.randomizeQuestions;
+                    document.getElementById('eb-rand-opt').checked = !!exam.randomizeOptions;
+                    selectedQIds = exam.questionIds || [];
+                }
+            }
+
+            // Ensure picker filter starts at "All Subjects" so all questions are visible
+            const filterEl = document.getElementById('picker-filter-subject');
+            if (filterEl && !filterEl.value) {
+                filterEl.value = "";
+            }
+
+            renderPickerList();
+            renderSelectedList();
+        }
+
+        function populateSubjectDropdowns() {
+            const subjects = window.TCISDB.getCollection('subjects') || [];
+            const questions = window.TCISQuestions.getAllQuestions() || [];
+            
+            const uniqueSubjects = new Set();
+            subjects.forEach(s => {
+                if (s.title || s.name) uniqueSubjects.add(s.title || s.name);
+            });
+            questions.forEach(q => {
+                if (q.subject) uniqueSubjects.add(q.subject);
+            });
+
+            const subjectList = Array.from(uniqueSubjects);
+
+            const paperSubjectSelect = document.getElementById('eb-subject');
+            if (paperSubjectSelect) {
+                const currentVal = paperSubjectSelect.value;
+                let options = '<option value="" class="text-black bg-white">-- Select Paper Subject --</option>';
+                options += '<option value="General" class="text-black bg-white">General / Multi-Subject</option>';
+                subjectList.forEach(sub => {
+                    const escaped = window.TCISUtils.escapeHTML(sub);
+                    options += `<option value="${escaped}" class="text-black bg-white">${escaped}</option>`;
+                });
+                paperSubjectSelect.innerHTML = options;
+                if (currentVal) paperSubjectSelect.value = currentVal;
+            }
+
+            const pickerFilterSelect = document.getElementById('picker-filter-subject');
+            if (pickerFilterSelect) {
+                const currentFilter = pickerFilterSelect.value;
+                let filterOptions = '<option value="" class="text-black bg-white">All Subjects</option>';
+                subjectList.forEach(sub => {
+                    const escaped = window.TCISUtils.escapeHTML(sub);
+                    filterOptions += `<option value="${escaped}" class="text-black bg-white">${escaped}</option>`;
+                });
+                pickerFilterSelect.innerHTML = filterOptions;
+                // Preserve user choice if already set, otherwise default to All Subjects
+                if (currentFilter) pickerFilterSelect.value = currentFilter;
+            }
+        }
+
+        function onExamSubjectChange() {
+            // Re-render picker when subject changes without forcing filter
+            renderPickerList();
+        }
+
+        function renderPickerList() {
+            const allQ = window.TCISQuestions.getAllQuestions();
+            const picker = document.getElementById('q-picker-list');
+            const selectedSub = document.getElementById('picker-filter-subject') ? document.getElementById('picker-filter-subject').value : '';
+            const searchQuery = document.getElementById('picker-search') ? document.getElementById('picker-search').value.toLowerCase().trim() : '';
+
+            if (!picker) return;
+
+            const filteredQ = allQ.filter(q => {
+                const matchesSubject = !selectedSub || (q.subject || '').toLowerCase() === selectedSub.toLowerCase();
+                const matchesSearch = !searchQuery || 
+                    (q.questionText || '').toLowerCase().includes(searchQuery) || 
+                    (q.subject || '').toLowerCase().includes(searchQuery) ||
+                    (q.type || '').toLowerCase().includes(searchQuery);
+                return matchesSubject && matchesSearch;
+            });
+
+            const badgeEl = document.getElementById('picker-count-badge');
+            if (badgeEl) {
+                badgeEl.innerText = `${filteredQ.length} of ${allQ.length} Questions`;
+            }
+
+            if (filteredQ.length === 0) {
+                const isFiltered = !!selectedSub || !!searchQuery;
+                picker.innerHTML = `
+                    <div class="text-center py-6 space-y-2">
+                        <p class="text-xs text-slate-500">${isFiltered ? 'No questions match the current filter.' : 'Question bank is empty.'}</p>
+                        ${isFiltered ? `
+                            <button onclick="clearPickerFilters()" class="text-[11px] text-indigo-600 hover:underline font-semibold">
+                                <i class="fa-solid fa-filter-circle-xmark"></i> Show All Questions (${allQ.length})
+                            </button>
+                        ` : ''}
+                    </div>
+                `;
+                return;
+            }
+
+            picker.innerHTML = filteredQ.map(q => {
+                const isPicked = selectedQIds.includes(q.id);
+                const hasImage = !!q.imageUrl;
+                return `
+                    <div class="p-3 rounded-xl bg-white border ${isPicked ? 'border-indigo-500 shadow-sm ring-1 ring-indigo-500/30' : 'border-slate-200'} flex items-start justify-between text-xs gap-2">
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-1.5 flex-wrap mb-1">
+                                <span class="px-2 py-0.5 rounded bg-indigo-50 text-indigo-600 font-semibold text-[10px] border border-indigo-100">${window.TCISUtils.escapeHTML(q.subject || 'General')}</span>
+                                <span class="text-[10px] text-slate-500 font-medium">${(q.type || 'mcq').toUpperCase()} • ${q.marks} Mks</span>
+                                ${hasImage ? `
+                                    <span class="px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 font-bold text-[9px] border border-amber-200 flex items-center gap-1">
+                                        <i class="fa-solid fa-image"></i> Picture
+                                    </span>
+                                ` : ''}
+                            </div>
+                            <span class="font-bold text-slate-900 block truncate" title="${window.TCISUtils.escapeHTML(q.questionText)}">${window.TCISUtils.escapeHTML(q.questionText)}</span>
+                            ${hasImage ? `
+                                <div class="mt-1.5 flex items-center gap-2">
+                                    <img src="${q.imageUrl}" alt="Preview" class="w-10 h-10 object-cover rounded border border-slate-200 bg-slate-50 flex-shrink-0" onerror="this.style.display='none'">
+                                    <span class="text-[10px] text-slate-400 truncate">Includes image</span>
+                                </div>
+                            ` : ''}
+                        </div>
+                        <button onclick="togglePickQuestion('${q.id}')" class="px-3 py-1.5 rounded-xl ${isPicked ? 'bg-rose-500/10 text-rose-500 border border-rose-200 hover:bg-rose-500 hover:text-white' : 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-600/20'} font-bold text-xs transition-all flex-shrink-0 mt-0.5">
+                            ${isPicked ? 'Remove' : 'Add'}
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function clearPickerFilters() {
+            const filterEl = document.getElementById('picker-filter-subject');
+            if (filterEl) filterEl.value = "";
+            const searchEl = document.getElementById('picker-search');
+            if (searchEl) searchEl.value = "";
+            renderPickerList();
+        }
+
+        function togglePickQuestion(id) {
+            if (selectedQIds.includes(id)) {
+                selectedQIds = selectedQIds.filter(qId => qId !== id);
+            } else {
+                selectedQIds.push(id);
+            }
+            renderPickerList();
+            renderSelectedList();
+        }
+
+        function renderSelectedList() {
+            const allQ = window.TCISQuestions.getAllQuestions();
+            const selectedQ = allQ.filter(q => selectedQIds.includes(q.id));
+            const listEl = document.getElementById('selected-questions-list');
+
+            let totalMarks = 0;
+            selectedQ.forEach(q => totalMarks += parseFloat(q.marks || 1));
+
+            document.getElementById('selected-q-count').innerText = selectedQ.length;
+            document.getElementById('total-marks-sum').innerText = `Total Marks: ${totalMarks}`;
+
+            if (selectedQ.length === 0) {
+                listEl.innerHTML = `<p class="text-xs text-slate-500 text-center py-6">No questions added yet. Select questions from the right panel.</p>`;
+                return;
+            }
+
+            listEl.innerHTML = selectedQ.map((q, idx) => `
+                <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between text-xs">
+                    <span class="font-bold text-indigo-400 mr-2">Q${idx + 1}.</span>
+                    <span class="font-medium text-slate-900 flex-1 truncate">${window.TCISUtils.escapeHTML(q.questionText)}</span>
+                    <span class="font-bold text-amber-400 mx-3">${q.marks} Mks</span>
+                    <button onclick="togglePickQuestion('${q.id}')" class="text-slate-500 hover:text-rose-400"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+            `).join('');
+        }
+
+        function saveExamination(status) {
+            const id = document.getElementById('eb-id').value;
+            const title = document.getElementById('eb-title').value.trim();
+            const subject = document.getElementById('eb-subject').value || 'General';
+
+            if (!title) {
+                window.TCISUtils.showToast('Examination title is required.', 'warning');
+                return;
+            }
+
+            const examData = {
+                id: id || undefined,
+                title: title,
+                subject: subject,
+                code: document.getElementById('eb-code').value,
+                instructions: document.getElementById('eb-instructions').value,
+                durationMinutes: document.getElementById('eb-duration').value,
+                passMark: document.getElementById('eb-pass-mark').value,
+                resultVisibility: document.getElementById('eb-result-vis').value,
+                cameraMonitoring: document.getElementById('eb-cam').checked,
+                autoSubmit: document.getElementById('eb-auto-submit').checked,
+                randomizeQuestions: document.getElementById('eb-rand-q').checked,
+                randomizeOptions: document.getElementById('eb-rand-opt').checked,
+                questionIds: selectedQIds,
+                status: status
+            };
+
+            const allQ = window.TCISQuestions.getAllQuestions();
+            let sumMarks = 0;
+            allQ.filter(q => selectedQIds.includes(q.id)).forEach(q => sumMarks += parseFloat(q.marks || 1));
+            examData.totalMarks = sumMarks;
+
+            if (id) window.TCISExam.updateExam(id, examData);
+            else window.TCISExam.createExam(examData);
+
+            window.TCISUtils.showToast(`Examination ${status === 'Open' ? 'published' : 'saved'} successfully!`, 'success');
+            setTimeout(() => {
+                window.location.href = 'examinations.html';
+            }, 800);
+        }
+    </script>
+</body>
+</html>
+
+
+
+

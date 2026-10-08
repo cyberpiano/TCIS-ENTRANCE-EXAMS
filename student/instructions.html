@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Examination Instructions - TCIS Entrance Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+</head>
+<body class="bg-white text-slate-900 min-h-screen flex flex-col justify-between unselectable">
+
+    <header class="w-full bg-blue-600 border-b border-blue-700 shadow-md">
+        <div class="max-w-7xl mx-auto p-4 sm:p-6 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="bg-blue-700/80 border border-blue-400/40 p-1.5 rounded-xl shadow-inner">
+                    <img src="../TCIS-Logo.png" alt="TCIS Logo" class="h-10 w-auto">
+                </div>
+                <span class="text-white font-bold text-xl tracking-tight hidden sm:block">TCIS Portal</span>
+            </div>
+            <div id="student-profile-badge" class="text-right text-white">
+                <!-- Rendered by JS -->
+            </div>
+        </div>
+    </header>
+
+    <main class="w-full max-w-4xl mx-auto px-6 py-8 flex-1">
+        <div class="bg-white p-8 rounded-3xl border border-slate-200 shadow-xl shadow-slate-200/50 space-y-6">
+            
+            <!-- Exam Title Header -->
+            <div class="border-b border-slate-100 pb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div>
+                    <span class="inline-block px-3 py-1 rounded-md bg-indigo-50 text-indigo-700 text-xs font-bold uppercase tracking-wider mb-2 border border-indigo-200">Assigned Examination</span>
+                    <h2 id="exam-title" class="text-2xl sm:text-3xl font-extrabold text-slate-900 font-heading">Loading Examination...</h2>
+                    <p id="exam-subject" class="text-slate-600 text-sm mt-1">Subject: Loading...</p>
+                </div>
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-center min-w-[140px]">
+                    <span class="text-xs text-slate-500 uppercase font-semibold">Duration</span>
+                    <p id="exam-duration" class="text-xl font-bold text-amber-600">-- Mins</p>
+                </div>
+            </div>
+
+            <!-- Pre-Exam Instructions -->
+            <div>
+                <h3 class="text-lg font-bold text-slate-900 mb-3 font-heading flex items-center gap-2">
+                    <i class="fa-solid fa-list-check text-indigo-600"></i> Examination Rules & Security Guidelines
+                </h3>
+                <ul class="space-y-3 text-sm text-slate-700">
+                    <li class="flex items-start gap-3 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+                        <i class="fa-solid fa-clock text-amber-500 text-base mt-0.5"></i>
+                        <div>
+                            <strong>Timed Examination:</strong> Once started, the countdown timer cannot be paused. When time expires, your answers will automatically be submitted.
+                        </div>
+                    </li>
+                    <li class="flex items-start gap-3 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+                        <i class="fa-solid fa-expand text-blue-600 text-base mt-0.5"></i>
+                        <div>
+                            <strong>Fullscreen Mode Required:</strong> You must remain in full-screen mode. Exiting fullscreen or switching browser tabs will trigger automated proctoring security logs.
+                        </div>
+                    </li>
+                    <li class="flex items-start gap-3 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+                        <i class="fa-solid fa-ban text-rose-500 text-base mt-0.5"></i>
+                        <div>
+                            <strong>Anti-Copy Controls Active:</strong> Right-clicking, copying, pasting, text selection, and keyboard shortcuts are disabled on this page.
+                        </div>
+                    </li>
+                    <li class="flex items-start gap-3 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+                        <i class="fa-solid fa-floppy-disk text-emerald-600 text-base mt-0.5"></i>
+                        <div>
+                            <strong>Automatic Answer Sync:</strong> All your answers are saved continuously in real-time. If your network temporarily disconnects, answers are stored locally.
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Privacy & Camera Consent Modal Section -->
+            <div class="bg-indigo-50/60 p-5 rounded-2xl border border-indigo-200">
+                <h4 class="text-sm font-bold text-indigo-900 mb-2 flex items-center gap-2">
+                    <i class="fa-solid fa-video text-indigo-600"></i> Camera Proctoring & Privacy Notice
+                </h4>
+                <p class="text-xs text-indigo-950 leading-relaxed mb-4">
+                    TCIS Entrance Examination employs periodic automated webcam snapshot monitoring (1 compressed image every 5 seconds) to ensure institutional integrity. Images are stored securely and accessible only to TCIS Admissions Administrators for review.
+                </p>
+                <label class="flex items-start gap-3 cursor-pointer select-none">
+                    <input type="checkbox" id="consent-checkbox" class="w-5 h-5 mt-0.5 rounded border-slate-300 bg-white text-indigo-600 focus:ring-indigo-500">
+                    <span class="text-xs font-semibold text-slate-900">I have read, understood, and explicitly consent to camera monitoring and anti-cheating enforcement during this examination.</span>
+                </label>
+            </div>
+
+            <!-- Gate Action Button -->
+            <div id="gate-container" class="pt-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <button onclick="window.TCISAuth.logoutStudent()" class="px-5 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs font-semibold transition-colors">
+                    Logout / Change Student
+                </button>
+                <button id="proceed-btn" disabled onclick="proceedToSystemCheck()" class="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-indigo-600 disabled:bg-slate-200 disabled:text-slate-400 hover:bg-indigo-500 text-white font-bold text-sm shadow-xl shadow-indigo-600/20 transition-all flex items-center justify-center gap-2">
+                    <span>Proceed to System Diagnostics Check</span>
+                    <i class="fa-solid fa-circle-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <footer class="w-full text-center py-4 text-xs text-slate-500 border-t border-slate-100">
+        &copy; 2026 TCIS Admissions Office
+    </footer>
+
+    <script src="../js/utils.js"></script>
+    <!-- Firebase Web SDK v10 (Compat Mode) -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics-compat.js"></script>
+    <script src="../js/firebase-config.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/exam.js"></script>
+    <script>
+        let currentStudent = null;
+        let assignedExam = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!window.TCISAuth.requireStudentAuth()) return;
+            currentStudent = window.TCISAuth.getCurrentStudent();
+
+            document.getElementById('student-profile-badge').innerHTML = `
+                <span class="text-xs font-bold text-white block">${window.TCISUtils.escapeHTML(currentStudent.fullName)}</span>
+                <span class="text-[10px] text-blue-200 font-mono">${currentStudent.studentId}</span>
+            `;
+
+            // Show loading state while waiting for Firestore sync
+            document.getElementById('exam-title').innerText = 'Loading Examination...';
+            document.getElementById('exam-duration').innerText = '-- Mins';
+            document.getElementById('proceed-btn').disabled = true;
+
+            // Wait for Firestore sync, then load exam details
+            (window.TCISDB.syncReady || Promise.resolve()).then(() => {
+                loadExamDetails();
+            }).catch(() => {
+                loadExamDetails(); // still try even if sync failed
+            });
+        });
+
+        function loadExamDetails() {
+            const examId = currentStudent.assignedExamId;
+
+            if (!examId) {
+                document.getElementById('exam-title').innerText = 'No Examination Assigned';
+                document.getElementById('exam-subject').innerText = 'Please contact TCIS Admissions Office.';
+                document.getElementById('exam-duration').innerText = '-- Mins';
+                return;
+            }
+
+            // Try local store first
+            assignedExam = window.TCISExam.getExamById(examId);
+
+            if (assignedExam) {
+                renderExamInfo();
+                return;
+            }
+
+            // Not in local store — fetch directly from Firestore
+            const db = window.TCISFirestoreInstance;
+            if (db) {
+                db.collection('examinations').doc(examId).get().then(doc => {
+                    if (doc.exists) {
+                        assignedExam = doc.data();
+                        // Cache it locally
+                        window.TCISDB.upsertItem('examinations', 'id', assignedExam);
+                        renderExamInfo();
+                    } else {
+                        document.getElementById('exam-title').innerText = 'Examination Not Found';
+                        document.getElementById('exam-subject').innerText = `ID: ${examId} — Please contact TCIS Admissions.`;
+                    }
+                }).catch(() => {
+                    document.getElementById('exam-title').innerText = 'Exam Unavailable (Offline)';
+                    document.getElementById('exam-subject').innerText = 'Check your internet connection.';
+                });
+            } else {
+                document.getElementById('exam-title').innerText = 'No Examination Found';
+                document.getElementById('exam-subject').innerText = 'Please contact TCIS Admissions.';
+            }
+        }
+
+        function renderExamInfo() {
+            document.getElementById('exam-title').innerText = assignedExam.title;
+            document.getElementById('exam-subject').innerText =
+                `Subject: ${assignedExam.subject || 'Multiple Subjects'} • Total Marks: ${assignedExam.totalMarks || '—'}`;
+            document.getElementById('exam-duration').innerText =
+                `${assignedExam.durationMinutes || '--'} Mins`;
+
+            // Enable proceed button when consent checkbox is checked
+            const consentCheckbox = document.getElementById('consent-checkbox');
+            const proceedBtn = document.getElementById('proceed-btn');
+
+            consentCheckbox.addEventListener('change', () => {
+                proceedBtn.disabled = !consentCheckbox.checked;
+            });
+        }
+
+        function proceedToSystemCheck() {
+            window.location.href = 'system-check.html';
+        }
+    </script>
+</body>
+</html>

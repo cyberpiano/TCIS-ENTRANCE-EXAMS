@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proctored Examination - TCIS Entrance Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+    <style>
+        /* ── White-mode exam overrides ── */
+        body { background: #f8fafc; color: #0f172a; }
+
+        .exam-header {
+            background: #2563eb; /* blue-600 */
+            border-bottom: 1px solid #1d4ed8; /* blue-700 */
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .question-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+            border-radius: 1.5rem;
+        }
+
+        .palette-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+            border-radius: 1.5rem;
+        }
+
+        /* Timer styles */
+        .timer-box {
+            background: #fff7ed;
+            border: 1.5px solid #fed7aa;
+            border-radius: 0.875rem;
+        }
+        .timer-box.warning {
+            background: #fef2f2;
+            border-color: #fecaca;
+            animation: timerPulse 1s ease-in-out infinite;
+        }
+        @keyframes timerPulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.4); }
+            50%       { box-shadow: 0 0 0 6px rgba(239,68,68,0); }
+        }
+
+        /* MCQ option labels */
+        .option-label {
+            display: flex; align-items: center; gap: 1rem;
+            padding: 0.875rem 1.125rem;
+            border-radius: 0.875rem;
+            border: 1.5px solid #e2e8f0;
+            background: #f8fafc;
+            cursor: pointer;
+            transition: all .2s;
+            color: #1e293b;
+        }
+        .option-label:hover { border-color: #818cf8; background: #eef2ff; }
+        .option-label.selected { border-color: #6366f1; background: #eef2ff; }
+
+        /* Text input */
+        .answer-input {
+            width: 100%; padding: 0.875rem 1rem;
+            background: #f8fafc; border: 1.5px solid #e2e8f0;
+            border-radius: 0.875rem; color: #0f172a; font-size: 0.875rem;
+            outline: none; transition: border .2s;
+        }
+        .answer-input:focus { border-color: #6366f1; background: #fff; }
+
+        /* Palette buttons */
+        .q-btn {
+            width: 2.25rem; height: 2.25rem; border-radius: 0.5rem;
+            font-size: 0.7rem; font-weight: 700; cursor: pointer;
+            transition: all .15s; border: none; outline: none;
+        }
+        .q-btn.unanswered { background: #f1f5f9; color: #64748b; }
+        .q-btn.unanswered:hover { background: #e2e8f0; }
+        .q-btn.answered   { background: #10b981; color: #fff; }
+        .q-btn.current    { outline: 2.5px solid #6366f1; outline-offset: 2px; }
+        .q-btn.flagged    { background: #f59e0b; color: #fff; }
+
+        /* Webcam badge */
+        .cam-badge {
+            background: #f0fdf4;
+            border: 1.5px solid #bbf7d0;
+            border-radius: 0.875rem;
+            padding: 0.375rem 0.625rem;
+            display: flex; align-items: center; gap: 0.5rem;
+        }
+        .pulse-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: #22c55e;
+            box-shadow: 0 0 0 0 rgba(34,197,94,0.7);
+            animation: livePulse 1.5s infinite;
+            display: inline-block;
+        }
+        @keyframes livePulse {
+            0%   { box-shadow: 0 0 0 0 rgba(34,197,94,0.7); }
+            70%  { box-shadow: 0 0 0 8px rgba(34,197,94,0); }
+            100% { box-shadow: 0 0 0 0 rgba(34,197,94,0); }
+        }
+
+        /* Essay area */
+        .essay-area {
+            width: 100%; padding: 0.875rem 1rem;
+            background: #f8fafc; border: 1.5px solid #e2e8f0;
+            border-radius: 0.875rem; color: #0f172a; font-size: 0.875rem;
+            resize: vertical; outline: none; transition: border .2s;
+            min-height: 160px;
+        }
+        .essay-area:focus { border-color: #6366f1; background: #fff; }
+
+        /* Matching select */
+        .match-select {
+            background: #f8fafc; border: 1.5px solid #e2e8f0;
+            border-radius: 0.75rem; color: #0f172a; padding: 0.5rem 0.75rem;
+            font-size: 0.8rem; outline: none;
+        }
+        .match-select:focus { border-color: #6366f1; }
+
+        /* Submit button */
+        .submit-btn {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: #fff; font-weight: 700; border: none;
+            border-radius: 0.875rem; padding: 0.875rem 1.25rem;
+            cursor: pointer; transition: all .2s; width: 100%;
+            font-size: 0.875rem; box-shadow: 0 4px 16px rgba(16,185,129,0.3);
+        }
+        .submit-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(16,185,129,0.4); }
+
+        /* Snapshot upload indicator */
+        #snap-indicator {
+            position: fixed; bottom: 1.25rem; right: 1.25rem;
+            background: #fff; border: 1.5px solid #e2e8f0;
+            border-radius: 0.875rem; padding: 0.5rem 0.875rem;
+            font-size: 0.7rem; color: #64748b; z-index: 50;
+            display: flex; align-items: center; gap: 0.5rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        #snap-indicator.uploading { border-color: #a5b4fc; color: #6366f1; }
+        #snap-indicator.done { border-color: #bbf7d0; color: #10b981; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between unselectable">
+
+    <!-- Distraction-Free Header Bar -->
+    <header class="exam-header w-full px-6 py-3 sticky top-0 z-40 flex items-center justify-between">
+        <div class="flex items-center gap-4">
+            <div class="bg-blue-700/80 border border-blue-400/40 p-1.5 rounded-xl shadow-inner">
+                <img src="../TCIS-Logo.png" alt="TCIS Logo" class="h-9 w-auto object-contain">
+            </div>
+            <div class="hidden sm:block border-l border-blue-400 pl-4">
+                <h1 id="header-exam-title" class="text-sm font-bold text-white font-heading truncate max-w-xs">TCIS Entrance Exam</h1>
+                <span id="header-exam-code" class="text-[10px] text-blue-200 font-mono">TCIS-ENT-2027</span>
+            </div>
+        </div>
+
+        <!-- Timer & Proctoring Status -->
+        <div class="flex items-center gap-3 sm:gap-5">
+            <!-- Live Countdown Timer -->
+            <div id="timer-box" class="timer-box flex items-center gap-2 px-4 py-2">
+                <i class="fa-solid fa-clock text-orange-400 text-sm"></i>
+                <div>
+                    <span class="text-[9px] uppercase font-semibold text-slate-400 block -mb-0.5">Time Remaining</span>
+                    <span id="timer-display" class="font-mono font-bold text-base text-orange-500">00:00:00</span>
+                </div>
+            </div>
+
+            <!-- Webcam Proctor Badge -->
+            <div class="cam-badge">
+                <div class="relative w-12 h-9 rounded-lg overflow-hidden bg-slate-100 flex items-center justify-center">
+                    <video id="proctor-webcam-feed" autoplay playsinline muted class="w-full h-full object-cover transform -scale-x-100"></video>
+                    <span class="pulse-dot" style="position:absolute;bottom:3px;right:3px;width:6px;height:6px;"></span>
+                </div>
+                <div class="hidden md:block">
+                    <span class="text-[10px] font-bold text-emerald-600 block">Proctor Active</span>
+                    <span id="violation-badge-count" class="text-[9px] text-slate-400">0 Violations</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Exam Workspace -->
+    <main class="w-full max-w-7xl mx-auto px-4 sm:px-6 py-6 flex-1 grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
+
+        <!-- Question Content Area (Left 3 Columns) -->
+        <div class="lg:col-span-3 space-y-6">
+            <div class="question-card p-6 sm:p-8 relative min-h-[440px] flex flex-col justify-between">
+
+                <!-- Question Meta Header -->
+                <div>
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-6">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span id="q-number-badge" class="px-3 py-1.5 rounded-lg bg-indigo-600 text-white font-extrabold text-xs">
+                                Question 1 of 8
+                            </span>
+                            <span id="q-subject-badge" class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 text-xs font-semibold">
+                                Mathematics
+                            </span>
+                            <span id="q-marks-badge" class="px-2.5 py-1.5 rounded-lg bg-amber-50 text-amber-600 text-xs font-bold border border-amber-200">
+                                2 Marks
+                            </span>
+                        </div>
+                        <!-- Flag Button -->
+                        <button id="flag-q-btn" onclick="toggleFlagCurrentQuestion()" class="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 text-slate-400 hover:text-amber-500 hover:border-amber-300 text-xs font-medium transition-all">
+                            <i class="fa-solid fa-flag"></i>
+                            <span id="flag-btn-text">Flag for Review</span>
+                        </button>
+                    </div>
+
+                    <!-- Question Text & Image -->
+                    <div id="question-text-container" class="space-y-4 mb-8">
+                        <h2 id="q-text" class="text-lg sm:text-xl font-medium text-slate-900 leading-relaxed">
+                            Loading question...
+                        </h2>
+                        <div id="q-image-box" class="hidden max-w-lg mx-auto rounded-2xl overflow-hidden border border-slate-200 bg-slate-50 p-2">
+                            <img id="q-image" src="" alt="Question Image" class="w-full h-auto rounded-xl">
+                        </div>
+                    </div>
+
+                    <!-- Answer Input Container -->
+                    <div id="answer-inputs-container" class="space-y-3">
+                        <!-- Dynamic options rendered by JS -->
+                    </div>
+                </div>
+
+                <!-- Navigation Controls -->
+                <div class="pt-6 border-t border-slate-100 flex items-center justify-between mt-8">
+                    <button id="prev-q-btn" onclick="navigateQuestion(-1)" class="px-5 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold transition-all disabled:opacity-40 disabled:pointer-events-none flex items-center gap-2 shadow-sm">
+                        <i class="fa-solid fa-chevron-left"></i> Previous
+                    </button>
+
+                    <span id="auto-save-status" class="text-[11px] font-medium text-emerald-500 flex items-center gap-1.5">
+                        <i class="fa-solid fa-cloud-check text-xs"></i> Answers Saved
+                    </span>
+
+                    <button id="next-q-btn" onclick="navigateQuestion(1)" class="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-lg shadow-indigo-600/20 transition-all flex items-center gap-2">
+                        <span>Next</span> <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Question Palette Sidebar (Right Column) -->
+        <div class="lg:col-span-1 space-y-6">
+            <div class="palette-card p-6">
+                <h3 class="text-sm font-bold text-slate-900 mb-4 font-heading flex items-center justify-between">
+                    <span>Question Palette</span>
+                    <i class="fa-solid fa-grip text-indigo-400"></i>
+                </h3>
+
+                <!-- Legend -->
+                <div class="grid grid-cols-2 gap-2 text-[10px] text-slate-500 mb-5 pb-4 border-b border-slate-100">
+                    <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-slate-200 inline-block"></span> Unanswered</div>
+                    <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-emerald-500 inline-block"></span> Answered</div>
+                    <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded border-2 border-indigo-500 inline-block"></span> Current</div>
+                    <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-amber-400 inline-block"></span> Flagged</div>
+                </div>
+
+                <!-- Palette Grid -->
+                <div id="question-palette-grid" class="grid grid-cols-4 sm:grid-cols-5 lg:grid-cols-4 gap-2.5 mb-6">
+                    <!-- Rendered by JS -->
+                </div>
+
+                <!-- Submit Button -->
+                <button onclick="confirmSubmitExam()" class="submit-btn flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-paper-plane"></i>
+                    <span>Submit Examination</span>
+                </button>
+            </div>
+
+            <!-- Student Info Card -->
+            <div class="palette-card p-4">
+                <div class="text-xs text-slate-500 font-semibold uppercase mb-2">Candidate</div>
+                <div id="student-info-card" class="text-xs text-slate-700 space-y-1">
+                    <!-- Rendered by JS -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Snapshot Upload Indicator -->
+    <div id="snap-indicator">
+        <i class="fa-solid fa-camera text-slate-400"></i>
+        <span id="snap-status-text">Proctoring Active</span>
+    </div>
+
+    <!-- Network Offline Modal -->
+    <div id="network-offline-modal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="bg-white border border-amber-300 p-6 rounded-2xl max-w-md w-full text-center space-y-4 shadow-2xl">
+            <div class="w-14 h-14 rounded-full bg-amber-100 text-amber-500 flex items-center justify-center text-2xl mx-auto">
+                <i class="fa-solid fa-wifi-slash animate-bounce"></i>
+            </div>
+            <h3 class="text-xl font-bold text-slate-900">Connection Lost</h3>
+            <p class="text-slate-600 text-xs leading-relaxed">
+                Your internet connection was temporarily interrupted. Your answers are stored locally and will synchronize once reconnected.
+            </p>
+            <div class="pt-2 text-xs font-semibold text-amber-500">Attempting to reconnect...</div>
+        </div>
+    </div>
+
+    <!-- Submission Loading Overlay -->
+    <div id="submit-loading-overlay" class="hidden fixed inset-0 z-[60] bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white p-8 rounded-2xl max-w-sm w-full text-center space-y-4 shadow-2xl">
+            <div class="w-16 h-16 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mx-auto"></div>
+            <h3 id="submit-loading-text" class="text-xl font-bold text-slate-900">Grading and securely saving your answers...</h3>
+            <p class="text-slate-500 text-xs">Please do not close this window.</p>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../js/utils.js"></script>
+    <!-- Firebase Web SDK v10 (Compat Mode) -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics-compat.js"></script>
+    <script src="../js/firebase-config.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/questions.js"></script>
+    <script src="../js/exam.js"></script>
+    <script src="../js/timer.js"></script>
+    <script src="../js/monitoring.js"></script>
+    <script src="../js/student.js"></script>
+    <script src="../js/results.js"></script>
+    <script>
+        // ── ImgBB API Key — replace with your key ──────────────────────
+        const IMGBB_API_KEY = 'YOUR_IMGBB_API_KEY';
+        // ───────────────────────────────────────────────────────────────
+
+        let student = null;
+        let exam = null;
+        let questionsList = [];
+        let currentQIndex = 0;
+        let studentAnswersMap = {};
+        let flaggedQuestionsMap = {};
+        let snapshotInterval = null;
+        let snapshotCount = 0;
+        let examStartTime = null;  // Track when the exam actually started
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!window.TCISAuth.requireStudentAuth()) return;
+            student = window.TCISAuth.getCurrentStudent();
+
+            // Show loading while Firestore syncs
+            document.getElementById('header-exam-title').innerText = 'Loading...';
+
+            // Wait for Firestore sync to complete, then initialize exam
+            (window.TCISDB.syncReady || Promise.resolve()).then(() => {
+                initExam();
+            }).catch(() => {
+                initExam(); // Still try even if sync failed
+            });
+        });
+
+        function initExam() {
+            const examId = student.assignedExamId;
+
+            if (!examId) {
+                alert('No examination has been assigned to your account. Please contact TCIS Admissions.');
+                window.location.href = 'instructions.html';
+                return;
+            }
+
+            exam = window.TCISExam.getExamById(examId);
+
+            if (!exam) {
+                // Try fetching directly from Firestore as fallback
+                const db = window.TCISFirestoreInstance;
+                if (db) {
+                    db.collection('examinations').doc(examId).get().then(doc => {
+                        if (doc.exists) {
+                            exam = doc.data();
+                            window.TCISDB.upsertItem('examinations', 'id', exam);
+                            // Also ensure questionBank is loaded
+                            loadQuestionsAndStart();
+                        } else {
+                            alert('Assigned examination not found. Please contact TCIS Admissions.');
+                            window.location.href = 'instructions.html';
+                        }
+                    }).catch(() => {
+                        alert('Could not load examination. Please check your internet connection.');
+                        window.location.href = 'instructions.html';
+                    });
+                } else {
+                    alert('Assigned examination not found.');
+                    window.location.href = 'instructions.html';
+                }
+                return;
+            }
+
+            loadQuestionsAndStart();
+        }
+
+        function loadQuestionsAndStart() {
+            // Record exam start time
+            examStartTime = Date.now();
+
+            // Header labels
+            document.getElementById('header-exam-title').innerText = exam.title;
+            document.getElementById('header-exam-code').innerText = exam.code;
+
+            // Student info card
+            document.getElementById('student-info-card').innerHTML = `
+                <div class="font-bold text-slate-900 text-sm">${window.TCISUtils.escapeHTML(student.fullName || student.firstName + ' ' + student.lastName)}</div>
+                <div class="font-mono text-indigo-500 text-[11px]">${window.TCISUtils.escapeHTML(student.studentId)}</div>
+                <div class="text-slate-400 text-[10px] mt-1">${window.TCISUtils.escapeHTML(exam.title)}</div>
+            `;
+
+            // Load Exam Questions — ensure questionBank is populated
+            const allBank = window.TCISQuestions.getAllQuestions();
+            if (allBank.length === 0 && window.TCISFirestoreInstance) {
+                // Fetch questionBank directly from Firestore
+                window.TCISFirestoreInstance.collection('questionBank').get().then(snapshot => {
+                    const docs = [];
+                    snapshot.forEach(doc => docs.push(doc.data()));
+                    if (docs.length > 0) {
+                        const store = window.TCISDB.getStore();
+                        store.questionBank = docs;
+                        window.TCISDB.saveStore(store);
+                    }
+                    startExamWithQuestions();
+                }).catch(() => {
+                    startExamWithQuestions(); // proceed even if fetch fails
+                });
+            } else {
+                startExamWithQuestions();
+            }
+        }
+
+        function startExamWithQuestions() {
+            const allBank = window.TCISQuestions.getAllQuestions();
+            questionsList = allBank.filter(q => (exam.questionIds || []).includes(q.id));
+
+            if (questionsList.length === 0) {
+                questionsList = allBank.slice(0, 8); // Fallback
+            }
+
+            // Randomize if configured
+            if (exam.randomizeQuestions) {
+                questionsList.sort(() => Math.random() - 0.5);
+            }
+
+            // Load saved session if resuming
+            const activeSession = window.TCISExam.getActiveSession(student.studentId, exam.id);
+            if (activeSession) {
+                studentAnswersMap = activeSession.answers || {};
+                currentQIndex = activeSession.currentQuestionIndex || 0;
+                (activeSession.flagged || []).forEach(qId => flaggedQuestionsMap[qId] = true);
+                // Restore start time from session if resuming
+                if (activeSession.startTime) examStartTime = activeSession.startTime;
+            }
+
+            // Save start time in session
+            window.TCISExam.saveActiveSessionAnswers(student.studentId, exam.id, studentAnswersMap, currentQIndex, Object.keys(flaggedQuestionsMap), examStartTime);
+
+            // Setup Proctoring
+            window.TCISMonitoring.requestCameraAccess('proctor-webcam-feed').then(result => {
+                if (result.success) {
+                    window.TCISMonitoring.startCameraMonitoring('proctor-webcam-feed', student.studentId, exam.id);
+                    // Start webcam snapshot upload every 5 seconds
+                    startWebcamSnapshots();
+                }
+            });
+
+            window.TCISMonitoring.setupAntiCheatingControls(student.studentId, exam.id, () => {
+                submitExamFinal(true);
+            });
+
+            // Start Countdown Timer
+            window.TCISTimer.startTimer(
+                exam.durationMinutes,
+                new Date(),
+                (tick) => {
+                    document.getElementById('timer-display').innerText = tick.formatted;
+                    // Turn timer red when < 5 minutes
+                    const timerBox = document.getElementById('timer-box');
+                    if (tick.totalSecondsRemaining <= 300) {
+                        timerBox.classList.add('warning');
+                        document.getElementById('timer-display').style.color = '#ef4444';
+                    }
+                },
+                () => {
+                    window.TCISUtils.showToast('⌛ Time Expired! Submitting examination automatically...', 'warning', 5000);
+                    submitExamFinal(true);
+                }
+            );
+
+            // Network listeners
+            window.addEventListener('offline', () => {
+                document.getElementById('network-offline-modal').classList.remove('hidden');
+            });
+            window.addEventListener('online', () => {
+                document.getElementById('network-offline-modal').classList.add('hidden');
+                window.TCISUtils.showToast('Reconnected. Syncing answers...', 'success');
+            });
+
+            renderPaletteGrid();
+            renderCurrentQuestion();
+        }
+
+
+        // ── Webcam Snapshot Capture & Upload to ImgBB ──────────────────
+        async function captureAndUploadSnapshot() {
+            try {
+                const video = document.getElementById('proctor-webcam-feed');
+                if (!video || !video.srcObject) return;
+
+                // Draw frame to canvas
+                const canvas = document.createElement('canvas');
+                canvas.width = 320;
+                canvas.height = 240;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                const base64 = canvas.toDataURL('image/jpeg', 0.6).split(',')[1];
+
+                // Show uploading state
+                setSnapStatus('uploading', 'Uploading snapshot...');
+
+                if (!IMGBB_API_KEY || IMGBB_API_KEY === 'YOUR_IMGBB_API_KEY') {
+                    // No API key — store locally without ImgBB
+                    saveSnapshotLocally(canvas.toDataURL('image/jpeg', 0.5));
+                    setSnapStatus('done', `Snapshot #${++snapshotCount} saved`);
+                    setTimeout(() => setSnapStatus('', 'Proctoring Active'), 2000);
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append('image', base64);
+
+                const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    const imageUrl = data.data.url;
+                    saveSnapshotRecord(imageUrl);
+                    setSnapStatus('done', `Snapshot #${++snapshotCount} uploaded`);
+                } else {
+                    // Fallback: store data URL locally
+                    saveSnapshotLocally(canvas.toDataURL('image/jpeg', 0.5));
+                    setSnapStatus('done', `Snapshot #${++snapshotCount} saved`);
+                }
+                setTimeout(() => setSnapStatus('', 'Proctoring Active'), 2500);
+
+            } catch (err) {
+                console.warn('Snapshot error:', err);
+                setSnapStatus('', 'Proctoring Active');
+            }
+        }
+
+        function saveSnapshotRecord(imageUrl) {
+            const record = {
+                id: `SNAP-${student.studentId}-${Date.now()}`,
+                studentId: student.studentId,
+                studentName: student.fullName || student.firstName + ' ' + student.lastName,
+                examId: exam.id,
+                imageUrl: imageUrl,
+                timestamp: new Date().toISOString()
+            };
+            window.TCISDB.upsertItem('monitoringImages', 'id', record);
+        }
+
+        function saveSnapshotLocally(dataUrl) {
+            // Store with a truncated data URL reference (no ImgBB)
+            const record = {
+                id: `SNAP-${student.studentId}-${Date.now()}`,
+                studentId: student.studentId,
+                studentName: student.fullName || student.firstName + ' ' + student.lastName,
+                examId: exam.id,
+                imageUrl: dataUrl, // stored as base64 dataURL
+                timestamp: new Date().toISOString()
+            };
+            window.TCISDB.upsertItem('monitoringImages', 'id', record);
+        }
+
+        function setSnapStatus(type, msg) {
+            const el = document.getElementById('snap-indicator');
+            const txt = document.getElementById('snap-status-text');
+            el.className = 'snap-indicator' + (type ? ` ${type}` : '');
+            // Re-apply base styles
+            el.style.cssText = `position:fixed;bottom:1.25rem;right:1.25rem;background:#fff;border-radius:0.875rem;padding:0.5rem 0.875rem;font-size:0.7rem;z-index:50;display:flex;align-items:center;gap:0.5rem;box-shadow:0 4px 12px rgba(0,0,0,0.08);border:1.5px solid ${type === 'uploading' ? '#a5b4fc' : type === 'done' ? '#bbf7d0' : '#e2e8f0'};color:${type === 'uploading' ? '#6366f1' : type === 'done' ? '#10b981' : '#64748b'};`;
+            txt.textContent = msg;
+        }
+
+        function startWebcamSnapshots() {
+            // Take snapshot immediately and then every 5 seconds
+            setTimeout(captureAndUploadSnapshot, 3000);
+            snapshotInterval = setInterval(captureAndUploadSnapshot, 5000);
+        }
+
+        function stopWebcamSnapshots() {
+            if (snapshotInterval) {
+                clearInterval(snapshotInterval);
+                snapshotInterval = null;
+            }
+        }
+
+        // ── Question Rendering ──────────────────────────────────────────
+        function renderCurrentQuestion() {
+            if (currentQIndex < 0) currentQIndex = 0;
+            if (currentQIndex >= questionsList.length) currentQIndex = questionsList.length - 1;
+
+            const q = questionsList[currentQIndex];
+
+            document.getElementById('q-number-badge').innerText = `Question ${currentQIndex + 1} of ${questionsList.length}`;
+            document.getElementById('q-subject-badge').innerText = q.subject || 'General';
+            document.getElementById('q-marks-badge').innerText = `${q.marks} Mark${q.marks > 1 ? 's' : ''}`;
+
+            // Flag state
+            const isFlagged = !!flaggedQuestionsMap[q.id];
+            const flagBtn = document.getElementById('flag-q-btn');
+            if (isFlagged) {
+                flagBtn.className = 'flex items-center gap-2 px-3 py-1.5 rounded-lg border border-amber-400 bg-amber-50 text-amber-600 text-xs font-semibold transition-all';
+                document.getElementById('flag-btn-text').innerText = 'Flagged';
+            } else {
+                flagBtn.className = 'flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 text-slate-400 hover:text-amber-500 hover:border-amber-300 text-xs font-medium transition-all';
+                document.getElementById('flag-btn-text').innerText = 'Flag for Review';
+            }
+
+            // Question text
+            document.getElementById('q-text').innerText = q.questionText;
+
+            // Image
+            const imageBox = document.getElementById('q-image-box');
+            if (q.imageUrl) {
+                imageBox.classList.remove('hidden');
+                document.getElementById('q-image').src = q.imageUrl;
+            } else {
+                imageBox.classList.add('hidden');
+            }
+
+            // Answer inputs
+            const inputContainer = document.getElementById('answer-inputs-container');
+            inputContainer.innerHTML = '';
+            const currentAnswer = studentAnswersMap[q.id];
+
+            switch (q.type) {
+                case 'mcq':
+                case 'true_false': {
+                    const options = q.options || (q.type === 'true_false' ? ['True', 'False'] : []);
+                    inputContainer.innerHTML = options.map((opt) => {
+                        const isChecked = currentAnswer === opt;
+                        return `
+                            <label class="option-label ${isChecked ? 'selected' : ''}">
+                                <input type="radio" name="q_radio" value="${window.TCISUtils.escapeHTML(opt)}" ${isChecked ? 'checked' : ''} onchange="saveAnswer('${q.id}', this.value)" class="w-5 h-5 text-indigo-600 focus:ring-indigo-500">
+                                <span class="text-sm font-medium text-slate-900">${window.TCISUtils.escapeHTML(opt)}</span>
+                            </label>
+                        `;
+                    }).join('');
+                    break;
+                }
+
+                case 'short_answer':
+                case 'fill_blank': {
+                    inputContainer.innerHTML = `
+                        <div class="space-y-2">
+                            <label class="text-xs font-semibold text-slate-500">Type your answer below:</label>
+                            <input type="text" value="${window.TCISUtils.escapeHTML(currentAnswer || '')}" oninput="saveAnswer('${q.id}', this.value)" placeholder="Enter answer..." class="answer-input">
+                        </div>
+                    `;
+                    break;
+                }
+
+                case 'essay': {
+                    inputContainer.innerHTML = `
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between text-xs text-slate-500">
+                                <span class="font-semibold">Write your essay response:</span>
+                                <span id="essay-word-count" class="font-mono text-indigo-500">Words: 0</span>
+                            </div>
+                            <textarea rows="8" oninput="saveAnswer('${q.id}', this.value); updateWordCount(this.value);" placeholder="Type essay response here..." class="essay-area">${window.TCISUtils.escapeHTML(currentAnswer || '')}</textarea>
+                        </div>
+                    `;
+                    updateWordCount(currentAnswer || '');
+                    break;
+                }
+
+                case 'multi_select': {
+                    const options = q.options || [];
+                    const selectedSet = Array.isArray(currentAnswer) ? currentAnswer : [];
+                    inputContainer.innerHTML = options.map((opt) => {
+                        const isChecked = selectedSet.includes(opt);
+                        return `
+                            <label class="option-label ${isChecked ? 'selected' : ''}">
+                                <input type="checkbox" value="${window.TCISUtils.escapeHTML(opt)}" ${isChecked ? 'checked' : ''} onchange="handleMultiSelectChange('${q.id}')" class="w-5 h-5 text-indigo-600 rounded">
+                                <span class="text-sm font-medium text-slate-900">${window.TCISUtils.escapeHTML(opt)}</span>
+                            </label>
+                        `;
+                    }).join('');
+                    break;
+                }
+
+                case 'matching': {
+                    const pairs = q.matchingPairs || [];
+                    const currentPairsMap = currentAnswer || {};
+                    const rightOptions = pairs.map(p => p.right).sort(() => 0.5 - Math.random());
+                    inputContainer.innerHTML = `
+                        <div class="space-y-3">
+                            <p class="text-xs font-semibold text-slate-500">Match each item on the left to the correct option on the right:</p>
+                            ${pairs.map(pair => `
+                                <div class="flex flex-col sm:flex-row items-center justify-between gap-3 p-3 rounded-xl bg-slate-50 border border-slate-200">
+                                    <span class="text-sm font-bold text-slate-900">${window.TCISUtils.escapeHTML(pair.left)}</span>
+                                    <i class="fa-solid fa-arrow-right text-slate-400 hidden sm:block"></i>
+                                    <select onchange="handleMatchingChange('${q.id}', '${window.TCISUtils.escapeHTML(pair.left)}', this.value)" class="match-select">
+                                        <option value="">-- Select Match --</option>
+                                        ${rightOptions.map(rOpt => `
+                                            <option value="${window.TCISUtils.escapeHTML(rOpt)}" ${currentPairsMap[pair.left] === rOpt ? 'selected' : ''}>${window.TCISUtils.escapeHTML(rOpt)}</option>
+                                        `).join('')}
+                                    </select>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                    break;
+                }
+            }
+
+            document.getElementById('prev-q-btn').disabled = currentQIndex === 0;
+            document.getElementById('next-q-btn').disabled = currentQIndex === questionsList.length - 1;
+            renderPaletteGrid();
+        }
+
+        function saveAnswer(qId, val) {
+            studentAnswersMap[qId] = val;
+            window.TCISExam.saveActiveSessionAnswers(student.studentId, exam.id, studentAnswersMap, currentQIndex, Object.keys(flaggedQuestionsMap));
+            renderPaletteGrid();
+            // Flash "Saved" indicator
+            const saveEl = document.getElementById('auto-save-status');
+            saveEl.innerHTML = '<i class="fa-solid fa-cloud-check text-xs"></i> Saved';
+            saveEl.style.color = '#10b981';
+        }
+
+        function handleMultiSelectChange(qId) {
+            const checkboxes = document.querySelectorAll('#answer-inputs-container input[type="checkbox"]');
+            const selected = [];
+            checkboxes.forEach(cb => { if (cb.checked) selected.push(cb.value); });
+            saveAnswer(qId, selected);
+        }
+
+        function handleMatchingChange(qId, leftItem, selectedRight) {
+            if (!studentAnswersMap[qId]) studentAnswersMap[qId] = {};
+            studentAnswersMap[qId][leftItem] = selectedRight;
+            saveAnswer(qId, studentAnswersMap[qId]);
+        }
+
+        function updateWordCount(str) {
+            const words = (str || '').trim().split(/\s+/).filter(Boolean).length;
+            const el = document.getElementById('essay-word-count');
+            if (el) el.innerText = `Words: ${words}`;
+        }
+
+        function navigateQuestion(delta) {
+            currentQIndex += delta;
+            renderCurrentQuestion();
+        }
+
+        function jumpToQuestion(idx) {
+            currentQIndex = idx;
+            renderCurrentQuestion();
+        }
+
+        function toggleFlagCurrentQuestion() {
+            const q = questionsList[currentQIndex];
+            if (flaggedQuestionsMap[q.id]) {
+                delete flaggedQuestionsMap[q.id];
+            } else {
+                flaggedQuestionsMap[q.id] = true;
+            }
+            window.TCISExam.saveActiveSessionAnswers(student.studentId, exam.id, studentAnswersMap, currentQIndex, Object.keys(flaggedQuestionsMap));
+            renderCurrentQuestion();
+        }
+
+        function renderPaletteGrid() {
+            const grid = document.getElementById('question-palette-grid');
+            if (!grid) return;
+
+            grid.innerHTML = questionsList.map((q, idx) => {
+                const isCurrent = idx === currentQIndex;
+                const isAnswered = studentAnswersMap[q.id] !== undefined && studentAnswersMap[q.id] !== '' && (Array.isArray(studentAnswersMap[q.id]) ? studentAnswersMap[q.id].length > 0 : true);
+                const isFlagged = !!flaggedQuestionsMap[q.id];
+
+                let classes = 'q-btn ';
+                if (isCurrent) classes += 'current ';
+                if (isFlagged) classes += 'flagged ';
+                else if (isAnswered) classes += 'answered ';
+                else classes += 'unanswered ';
+
+                return `<button onclick="jumpToQuestion(${idx})" class="${classes.trim()}">${idx + 1}</button>`;
+            }).join('');
+        }
+
+        function confirmSubmitExam() {
+            const answeredCount = Object.keys(studentAnswersMap).filter(k => {
+                const v = studentAnswersMap[k];
+                return v !== '' && v !== null && v !== undefined && !(Array.isArray(v) && v.length === 0);
+            }).length;
+            const flaggedCount = Object.keys(flaggedQuestionsMap).length;
+            const total = questionsList.length;
+            const unanswered = total - answeredCount;
+
+            const msg = [
+                `<div class="space-y-2 text-sm">`,
+                `<div class="flex justify-between"><span class="text-slate-500">Total Questions</span><span class="font-bold text-slate-800">${total}</span></div>`,
+                `<div class="flex justify-between"><span class="text-emerald-600">✓ Answered</span><span class="font-bold text-emerald-700">${answeredCount}</span></div>`,
+                flaggedCount > 0 ? `<div class="flex justify-between"><span class="text-amber-600">⚑ Flagged for Review</span><span class="font-bold text-amber-700">${flaggedCount}</span></div>` : '',
+                unanswered > 0 ? `<div class="flex justify-between"><span class="text-rose-600">✗ Unanswered</span><span class="font-bold text-rose-700">${unanswered}</span></div>` : '',
+                `</div>`,
+                unanswered > 0 ? `<p class="text-xs text-amber-600 mt-3 font-medium">⚠ ${unanswered} unanswered question(s) will be marked as 0. Are you sure you want to submit?</p>` : `<p class="text-xs text-emerald-600 mt-3 font-medium">All questions answered. Ready to submit!</p>`
+            ].join('');
+
+            window.TCISUtils.showConfirmModal({
+                title: 'Submit Examination',
+                message: msg,
+                confirmText: 'Yes, Submit Exam',
+                type: unanswered > 0 ? 'warning' : 'success',
+                onConfirm: () => submitExamFinal(false)
+            });
+        }
+
+        function submitExamFinal(isAutoSubmit = false) {
+            window.TCISTimer.stopTimer();
+            window.TCISMonitoring.stopCamera();
+            stopWebcamSnapshots();
+
+            const overlay = document.getElementById('submit-loading-overlay');
+            const overlayText = document.getElementById('submit-loading-text');
+            if (overlay) overlay.classList.remove('hidden');
+
+            const performSubmit = async () => {
+                if (overlayText) overlayText.innerText = isAutoSubmit ? 'Auto-submitting...' : 'Processing result...';
+
+                // Compute time spent
+                const durationSeconds = examStartTime ? Math.round((Date.now() - examStartTime) / 1000) : null;
+
+                // Gather proctoring data from monitoring module (if available)
+                const monStats = (window.TCISMonitoring && window.TCISMonitoring.getSessionStats)
+                    ? window.TCISMonitoring.getSessionStats(student.studentId, exam.id)
+                    : {};
+
+                const examMeta = {
+                    durationSeconds,
+                    tabSwitchCount: monStats.tabSwitches || 0,
+                    violationCount: monStats.violations || 0,
+                    snapshotCount: snapshotCount,
+                    flaggedCount: Object.keys(flaggedQuestionsMap).length
+                };
+
+                // Mark the exam and save result (async — fetches questionBank from Firestore if needed)
+                const resultRecord = await window.TCISResults.computeAndSaveExamResult(
+                    student.studentId, exam.id, studentAnswersMap, examMeta
+                );
+                window.TCISExam.clearActiveSession(student.studentId, exam.id);
+
+                if (resultRecord) {
+                    const toastMsg = isAutoSubmit
+                        ? `⌛ Time up! Exam submitted. Score: ${resultRecord.marksObtained}/${resultRecord.totalMarks} (${resultRecord.percentage}%)`
+                        : `✓ Exam submitted! Score: ${resultRecord.marksObtained}/${resultRecord.totalMarks} (${resultRecord.percentage}%)`;
+                    window.TCISUtils.showToast(toastMsg, 'success', 4000);
+                } else {
+                    window.TCISUtils.showToast('Examination submitted successfully!', 'success');
+                }
+
+                setTimeout(() => {
+                    window.location.href = 'result.html';
+                }, 1800);
+            };
+
+            // Offline safeguard
+            if (!navigator.onLine) {
+                if (overlayText) overlayText.innerText = 'Network offline. Waiting for connection to submit...';
+                const onlineHandler = () => {
+                    window.removeEventListener('online', onlineHandler);
+                    performSubmit();
+                };
+                window.addEventListener('online', onlineHandler);
+                // Ensure latest answers are saved locally
+                window.TCISExam.saveActiveSessionAnswers(student.studentId, exam.id, studentAnswersMap, currentQIndex, Object.keys(flaggedQuestionsMap));
+                return;
+            }
+
+            // Slight delay for UX (shows loading overlay)
+            setTimeout(performSubmit, 1500);
+        }
+    </script>
+</body>
+</html>

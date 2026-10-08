@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Assignments - TCIS Entrance Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex">
+
+    <div id="admin-sidebar-container"></div>
+
+    <div class="flex-1 ml-64 p-8 overflow-y-auto">
+        <div class="flex items-center justify-between mb-8 pb-4 border-b border-slate-200">
+            <div>
+                <h1 class="text-3xl font-extrabold text-slate-900 font-heading">Exam Assignments & Credentials</h1>
+                <p class="text-slate-500 text-xs mt-1">Assign examinations to students, auto-generate Student IDs, and manage login credentials.</p>
+            </div>
+            <button onclick="openAssignModal()" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-lg shadow-indigo-600/30 flex items-center gap-2">
+                <i class="fa-solid fa-user-plus"></i> Assign Student to Exam
+            </button>
+        </div>
+
+        <!-- Assignments Table -->
+        <div class="glass-panel rounded-3xl border border-slate-200 overflow-hidden shadow-2xl">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-slate-50/80 border-b border-slate-200 text-[11px] font-bold uppercase text-slate-500">
+                        <th class="p-4 pl-6">Student Name &amp; ID</th>
+                        <th class="p-4">Assigned Examination</th>
+                        <th class="p-4">Exam Credentials (ID &amp; Code)</th>
+                        <th class="p-4">Status</th>
+                        <th class="p-4 pr-6 text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="assignments-table-body" class="divide-y divide-slate-200/60 text-xs text-slate-600">
+                    <!-- Rendered by JS -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Assign Modal -->
+    <div id="assign-modal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl border border-slate-200 max-w-lg w-full p-6 shadow-2xl space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+                <div>
+                    <h3 class="text-lg font-bold text-slate-900 font-heading flex items-center gap-2">
+                        <i class="fa-solid fa-user-plus text-indigo-600"></i> Assign Student to Exam
+                    </h3>
+                    <p class="text-[11px] text-slate-500 mt-0.5">Input the student's name to generate their unique Student ID and Exam Code credentials.</p>
+                </div>
+                <button onclick="closeAssignModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <form id="assign-form" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">1. Select Examination *</label>
+                    <select id="asg-exam-id" required class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-black text-xs font-medium focus:border-indigo-500">
+                        <!-- Exams list -->
+                    </select>
+                </div>
+
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="block text-xs font-semibold text-slate-700">2. Student Full Name *</label>
+                        <span class="text-[10px] text-indigo-600 font-bold"><i class="fa-solid fa-wand-magic-sparkles"></i> Auto-generates Student ID</span>
+                    </div>
+                    <input type="text" id="asg-student-name" required placeholder="e.g. Sarah Ama Mensah" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-xs focus:bg-white focus:border-indigo-500">
+                </div>
+
+                <div>
+                    <label class="block text-[11px] font-semibold text-slate-500 mb-1">Or Pick Existing Registered Student (Optional)</label>
+                    <select id="asg-existing-student" onchange="onExistingStudentSelect()" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-black text-xs">
+                        <option value="" class="text-black bg-white">-- Create New Student Above --</option>
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Email Address (Optional)</label>
+                        <input type="email" id="asg-student-email" placeholder="student@example.com" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-xs">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Program / Class</label>
+                        <select id="asg-student-program" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-black text-xs">
+                            <option value="Grade 10 Admission" class="text-black bg-white">Grade 10 Admission</option>
+                            <option value="Grade 11 Admission" class="text-black bg-white">Grade 11 Admission</option>
+                            <option value="Grade 12 Admission" class="text-black bg-white">Grade 12 Admission</option>
+                        </select>
+                    </div>
+                </div>
+
+                <label class="flex items-center gap-3 p-3 bg-indigo-50/50 rounded-xl border border-indigo-100 cursor-pointer">
+                    <input type="checkbox" id="asg-send-email" checked class="w-4 h-4 text-indigo-600 rounded">
+                    <span class="text-xs text-indigo-900 font-medium">Send Instant Brevo Email Invitation with Login Credentials</span>
+                </label>
+
+                <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-200">
+                    <button type="button" onclick="closeAssignModal()" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 text-xs font-semibold">Cancel</button>
+                    <button type="submit" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-lg shadow-indigo-600/30 flex items-center gap-2">
+                        <i class="fa-solid fa-check"></i> Generate Credentials &amp; Assign
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Credentials Generated Modal -->
+    <div id="credentials-modal" class="hidden fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl border border-slate-200 max-w-md w-full p-6 shadow-2xl space-y-5 animate-fade-in">
+            <div class="text-center">
+                <div class="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-2xl mx-auto mb-3 border border-emerald-200 shadow-md">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+                <h3 class="text-xl font-extrabold text-slate-900 font-heading">Exam Assignment Created!</h3>
+                <p class="text-slate-500 text-xs mt-1">Below are the student's generated examination login credentials.</p>
+            </div>
+
+            <div class="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3 font-mono text-xs">
+                <div class="flex items-center justify-between pb-2 border-b border-slate-200">
+                    <span class="text-slate-500 font-sans text-xs">Student Name:</span>
+                    <span id="cred-student-name" class="font-bold text-slate-900 font-sans"></span>
+                </div>
+                <div class="flex items-center justify-between pb-2 border-b border-slate-200">
+                    <span class="text-slate-500 font-sans text-xs">Generated Student ID:</span>
+                    <span id="cred-student-id" class="font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200"></span>
+                </div>
+                <div class="flex items-center justify-between pb-2 border-b border-slate-200">
+                    <span class="text-slate-500 font-sans text-xs">Examination Title:</span>
+                    <span id="cred-exam-title" class="font-bold text-slate-900 font-sans text-right truncate max-w-[200px]"></span>
+                </div>
+                <div class="flex items-center justify-between pb-2 border-b border-slate-200">
+                    <span class="text-slate-500 font-sans text-xs">Exam ID / Code:</span>
+                    <span id="cred-exam-code" class="font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded border border-amber-200"></span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-slate-500 font-sans text-xs">Access Passkey:</span>
+                    <span id="cred-passkey" class="font-bold text-slate-700 bg-slate-200 px-2 py-0.5 rounded"></span>
+                </div>
+            </div>
+
+            <div class="p-3 bg-amber-50 border border-amber-200 rounded-xl text-[11px] text-amber-900 flex items-start gap-2">
+                <i class="fa-solid fa-circle-info text-amber-600 mt-0.5"></i>
+                <span>The student uses their <strong>Student ID</strong> and <strong>Exam ID / Access Code</strong> to log into the examination portal.</span>
+            </div>
+
+            <div class="flex items-center justify-end gap-3 pt-2">
+                <button onclick="copyCredentialsSummary()" class="px-4 py-2.5 rounded-xl border border-indigo-200 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-xs flex items-center gap-2">
+                    <i class="fa-solid fa-copy"></i> Copy Login Credentials
+                </button>
+                <button onclick="closeCredentialsModal()" class="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs">Done</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../js/utils.js"></script>
+    <!-- Firebase Web SDK v10 (Compat Mode) -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics-compat.js"></script>
+    <script src="../js/firebase-config.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/student.js"></script>
+    <script src="../js/exam.js"></script>
+    <script src="../js/email.js"></script>
+    <script src="../js/admin.js"></script>
+    <script>
+        let currentCreds = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!window.TCISAuth.requireAdminAuth()) return;
+            window.TCISAdmin.renderAdminNavigation('assignments');
+            renderAssignmentsTable();
+        });
+
+        function renderAssignmentsTable() {
+            const students = window.TCISStudent.getAllStudents();
+            const exams = window.TCISExam.getAllExams();
+            const tbody = document.getElementById('assignments-table-body');
+            if (!tbody) return;
+
+            const assignedStudents = students.filter(s => s.assignedExamId);
+
+            if (assignedStudents.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center p-8 text-slate-500">No exam assignments created yet. Click "Assign Student to Exam" to start.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = assignedStudents.map(s => {
+                const assigned = exams.find(e => e.id === s.assignedExamId) || { title: 'Exam ' + s.assignedExamId, code: s.assignedExamId };
+                return `
+                    <tr class="hover:bg-white/60 transition-colors">
+                        <td class="p-4 pl-6">
+                            <span class="font-bold text-slate-900 block">${window.TCISUtils.escapeHTML(s.firstName)} ${window.TCISUtils.escapeHTML(s.lastName)}</span>
+                            <span class="text-[10px] text-indigo-600 font-mono font-bold bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100 inline-block mt-0.5">${s.studentId}</span>
+                        </td>
+                        <td class="p-4 font-medium text-slate-700">
+                            <span class="font-semibold block">${window.TCISUtils.escapeHTML(assigned.title)}</span>
+                            <span class="text-[10px] text-slate-500 font-mono">Exam ID: ${assigned.id || s.assignedExamId}</span>
+                        </td>
+                        <td class="p-4">
+                            <div class="text-xs space-y-1">
+                                <div><span class="text-[10px] text-slate-400">Student ID:</span> <code class="font-bold text-indigo-600 font-mono">${s.studentId}</code></div>
+                                <div><span class="text-[10px] text-slate-400">Exam ID / Passkey:</span> <code class="font-bold text-amber-600 font-mono">${assigned.id || s.invitationPasskey}</code></div>
+                            </div>
+                        </td>
+                        <td class="p-4">
+                            <span class="px-2.5 py-1 rounded-full text-[10px] font-bold ${
+                                s.examStatus === 'Completed' ? 'bg-emerald-500/20 text-emerald-700 border border-emerald-300' : 'bg-blue-500/10 text-blue-600 border border-blue-200'
+                            }">${s.examStatus || 'Assigned'}</span>
+                        </td>
+                        <td class="p-4 pr-6 text-right space-x-2">
+                            <button onclick="copySingleCredentials('${s.studentId}', '${s.firstName} ${s.lastName}', '${assigned.title}', '${assigned.id || s.assignedExamId}', '${s.invitationPasskey}')" class="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold" title="Copy Login Credentials">
+                                <i class="fa-solid fa-copy mr-1 text-slate-500"></i> Copy Credentials
+                            </button>
+                            <button onclick="triggerEmailInvitation('${s.studentId}')" class="px-2.5 py-1.5 rounded-lg bg-indigo-600/10 hover:bg-indigo-600 text-indigo-600 hover:text-white text-xs font-semibold" title="Send Invitation Email">
+                                <i class="fa-solid fa-paper-plane mr-1"></i> Email
+                            </button>
+                            <button onclick="deleteAssignment('${s.studentId}')" class="text-rose-500 hover:text-rose-700 p-1.5" title="Remove Assignment"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function openAssignModal() {
+            const exams = window.TCISExam.getAllExams();
+            const students = window.TCISStudent.getAllStudents();
+
+            const examSelect = document.getElementById('asg-exam-id');
+            examSelect.innerHTML = exams.map(e => `
+                <option value="${e.id}" class="text-black bg-white">${window.TCISUtils.escapeHTML(e.title)} (Exam ID: ${e.id})</option>
+            `).join('');
+
+            if (exams.length === 0) {
+                examSelect.innerHTML = `<option value="" class="text-black bg-white">No examinations found - Please create an exam first</option>`;
+            }
+
+            const studentSelect = document.getElementById('asg-existing-student');
+            studentSelect.innerHTML = '<option value="" class="text-black bg-white">-- Create New Student Above --</option>' +
+                students.map(s => `<option value="${s.studentId}" class="text-black bg-white">${s.firstName} ${s.lastName} (${s.studentId})</option>`).join('');
+
+            document.getElementById('asg-student-name').value = '';
+            document.getElementById('asg-student-email').value = '';
+
+            document.getElementById('assign-modal').classList.remove('hidden');
+        }
+
+        function closeAssignModal() {
+            document.getElementById('assign-modal').classList.add('hidden');
+        }
+
+        function onExistingStudentSelect() {
+            const studentId = document.getElementById('asg-existing-student').value;
+            if (studentId) {
+                const s = window.TCISDB.getItem('students', 'studentId', studentId);
+                if (s) {
+                    document.getElementById('asg-student-name').value = `${s.firstName} ${s.lastName}`.trim();
+                    document.getElementById('asg-student-email').value = s.email || '';
+                    if (s.program) document.getElementById('asg-student-program').value = s.program;
+                }
+            }
+        }
+
+        document.getElementById('assign-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const examId = document.getElementById('asg-exam-id').value;
+            const fullName = document.getElementById('asg-student-name').value.trim();
+            const existingStudentId = document.getElementById('asg-existing-student').value;
+            const email = document.getElementById('asg-student-email').value.trim();
+            const program = document.getElementById('asg-student-program').value;
+            const sendEmail = document.getElementById('asg-send-email').checked;
+
+            if (!examId) {
+                window.TCISUtils.showToast('Please select an examination to assign.', 'warning');
+                return;
+            }
+
+            if (!fullName) {
+                window.TCISUtils.showToast('Please enter the student name.', 'warning');
+                return;
+            }
+
+            const exam = window.TCISExam.getExamById(examId) || { id: examId, title: 'Examination', code: examId };
+
+            let studentRecord = null;
+
+            if (existingStudentId) {
+                studentRecord = window.TCISStudent.updateStudent(existingStudentId, {
+                    assignedExamId: examId,
+                    examCode: exam.code || examId,
+                    examStatus: 'Assigned',
+                    email: email || undefined,
+                    program: program
+                });
+            } else {
+                studentRecord = window.TCISStudent.addStudent({
+                    fullName: fullName,
+                    email: email,
+                    program: program,
+                    assignedExamId: examId,
+                    examCode: exam.code || examId
+                });
+            }
+
+            currentCreds = {
+                studentName: `${studentRecord.firstName} ${studentRecord.lastName}`.trim(),
+                studentId: studentRecord.studentId,
+                examTitle: exam.title,
+                examCode: exam.id || exam.code || examId,
+                passkey: studentRecord.invitationPasskey
+            };
+
+            closeAssignModal();
+            renderAssignmentsTable();
+
+            if (sendEmail && studentRecord.email) {
+                triggerEmailInvitation(studentRecord.studentId);
+            }
+
+            showCredentialsModal(currentCreds);
+        });
+
+        function showCredentialsModal(creds) {
+            document.getElementById('cred-student-name').innerText = creds.studentName;
+            document.getElementById('cred-student-id').innerText = creds.studentId;
+            document.getElementById('cred-exam-title').innerText = creds.examTitle;
+            document.getElementById('cred-exam-code').innerText = creds.examCode;
+            document.getElementById('cred-passkey').innerText = creds.passkey;
+
+            document.getElementById('credentials-modal').classList.remove('hidden');
+        }
+
+        function closeCredentialsModal() {
+            document.getElementById('credentials-modal').classList.add('hidden');
+        }
+
+        function copyCredentialsSummary() {
+            if (!currentCreds) return;
+            const text = `TCIS Entrance Examination Login Credentials\n---------------------------------------\nStudent Name: ${currentCreds.studentName}\nStudent ID: ${currentCreds.studentId}\nExamination: ${currentCreds.examTitle}\nExam ID / Access Code: ${currentCreds.examCode}\nPasskey: ${currentCreds.passkey}\n---------------------------------------\nLogin URL: ${window.location.origin}/student/login.html`;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                window.TCISUtils.showToast('Login credentials copied to clipboard!', 'success');
+            }).catch(() => {
+                window.TCISUtils.showToast(`Student ID: ${currentCreds.studentId} | Exam ID: ${currentCreds.examCode}`, 'info');
+            });
+        }
+
+        function copySingleCredentials(studentId, name, examTitle, examCode, passkey) {
+            const text = `TCIS Exam Credentials\nStudent: ${name}\nStudent ID: ${studentId}\nExam ID: ${examCode}\nPasskey: ${passkey}`;
+            navigator.clipboard.writeText(text).then(() => {
+                window.TCISUtils.showToast(`Credentials for ${name} copied!`, 'success');
+            }).catch(() => {
+                window.TCISUtils.showToast(`ID: ${studentId} | Exam ID: ${examCode}`, 'info');
+            });
+        }
+
+        function deleteAssignment(studentId) {
+            if (confirm('Are you sure you want to remove this examination assignment?')) {
+                window.TCISStudent.updateStudent(studentId, { assignedExamId: '', examStatus: 'Unassigned' });
+                window.TCISUtils.showToast('Exam assignment removed.', 'info');
+                renderAssignmentsTable();
+            }
+        }
+
+        async function triggerEmailInvitation(studentId) {
+            const student = window.TCISDB.getItem('students', 'studentId', studentId);
+            const exam = window.TCISExam.getExamById(student.assignedExamId || 'EXAM-2027-01');
+
+            if (!student || !exam) {
+                window.TCISUtils.showToast('Please assign an examination first.', 'warning');
+                return;
+            }
+
+            if (!student.email) {
+                window.TCISUtils.showToast('No email address registered for this student.', 'warning');
+                return;
+            }
+
+            window.TCISUtils.showToast('Sending invitation email via Brevo...', 'info');
+            const res = await window.TCISEmail.sendExamInvitation(student, exam);
+
+            if (res.success) {
+                window.TCISUtils.showToast(`Invitation email sent to ${student.email}!`, 'success');
+            } else {
+                window.TCISUtils.showToast(`Email notice: ${res.errorMessage}`, 'warning');
+            }
+        }
+    </script>
+</body>
+</html>
+
+
+
+

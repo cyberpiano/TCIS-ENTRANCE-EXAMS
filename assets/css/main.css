@@ -1,0 +1,217 @@
+/* TCIS Entrance Examination Portal - Modern Light / White Theme */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap');
+
+:root {
+    --tcis-navy: #0f172a;
+    --tcis-navy-light: #1e293b;
+    --tcis-blue: #2563eb;
+    --tcis-indigo: #4f46e5;
+    --tcis-gold: #d97706;
+    --tcis-emerald: #059669;
+    --tcis-rose: #e11d48;
+    --tcis-slate: #64748b;
+    --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+    --font-heading: 'Outfit', system-ui, -apple-system, sans-serif;
+}
+
+body {
+    font-family: var(--font-sans);
+    background-color: #ffffff;
+    color: #0f172a;
+}
+
+h1, h2, h3, h4, h5, h6, .font-heading {
+    font-family: var(--font-heading);
+}
+
+/* Crisp Light Glassmorphism Panels (for white/light backgrounds) */
+.glass-panel {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.05), 0 8px 10px -6px rgba(15, 23, 42, 0.03);
+}
+
+/* Dark Glassmorphism Panels (for admin portal dark backgrounds) */
+.glass-dark {
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(51, 65, 85, 0.8);
+    box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255,255,255,0.05);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+.card-white {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+/* Force dropdown option text to always be readable (dark on white) */
+select option {
+    color: #1e293b;
+    background-color: #ffffff;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: #f8fafc;
+}
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* Anti-copy selection protection class */
+.unselectable {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+/* Toast Container */
+#toast-container {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    pointer-events: none;
+}
+
+.toast-item {
+    pointer-events: auto;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: slideInRight 0.3s ease-out forwards;
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(100%);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Question Palette Status Badges */
+.q-btn {
+    width: 2.75rem;
+    height: 2.75rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.75rem;
+    font-weight: 700;
+    font-size: 0.875rem;
+    transition: all 0.15s ease;
+    position: relative;
+}
+
+.q-btn.unanswered {
+    background-color: #f1f5f9;
+    color: #475569;
+    border: 1px solid #cbd5e1;
+}
+
+.q-btn.answered {
+    background-color: #10b981;
+    color: #ffffff;
+    border: 1px solid #059669;
+}
+
+.q-btn.current {
+    box-shadow: 0 0 0 3px #3b82f6;
+    border: 2px solid #2563eb;
+    font-weight: 800;
+    transform: scale(1.05);
+}
+
+.q-btn.flagged::after {
+    content: '';
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 10px;
+    height: 10px;
+    background-color: #f59e0b;
+    border-radius: 50%;
+    border: 2px solid #ffffff;
+}
+
+/* Camera Preview Overlay */
+.camera-badge {
+    position: relative;
+    overflow: hidden;
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.camera-badge .pulse-dot {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 10px;
+    height: 10px;
+    background-color: #ef4444;
+    border-radius: 50%;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 8px rgba(239, 68, 68, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+    }
+}
+
+/* Matching Drag & Drop / Pair Selector */
+.matching-pair {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+/* Print Styles for Result Reports */
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    #printable-report, #printable-report * {
+        visibility: visible;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    #printable-report {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+    }
+    .no-print {
+        display: none !important;
+    }
+}

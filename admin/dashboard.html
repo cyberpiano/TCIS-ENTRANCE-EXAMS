@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - TCIS Entrance Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex">
+
+    <!-- Admin Sidebar Navigation -->
+    <div id="admin-sidebar-container"></div>
+
+    <!-- Main Content Panel (Shifted for 64px sidebar) -->
+    <div class="flex-1 ml-64 p-8 overflow-y-auto">
+        
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-8 pb-4 border-b border-slate-200">
+            <div>
+                <h1 class="text-3xl font-extrabold text-slate-900 font-heading">Dashboard Overview</h1>
+                <p class="text-slate-500 text-xs mt-1">Real-time statistics & examination metrics for TCIS Admissions.</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <a href="examinations.html" class="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-lg shadow-indigo-600/30 transition-all flex items-center gap-2">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>Create Examination</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Metric Overview Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5 mb-8">
+            <div class="glass-panel p-5 rounded-2xl border border-slate-200 flex items-center justify-between">
+                <div>
+                    <span class="text-xs font-semibold text-slate-500 block uppercase">Total Students</span>
+                    <p id="metric-total-students" class="text-3xl font-black text-slate-900 mt-1">0</p>
+                </div>
+                <div class="w-12 h-12 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-xl font-bold border border-indigo-500/30">
+                    <i class="fa-solid fa-user-graduate"></i>
+                </div>
+            </div>
+
+            <div class="glass-panel p-5 rounded-2xl border border-slate-200 flex items-center justify-between">
+                <div>
+                    <span class="text-xs font-semibold text-slate-500 block uppercase">Total Exams</span>
+                    <p id="metric-total-exams" class="text-3xl font-black text-slate-900 mt-1">0</p>
+                </div>
+                <div class="w-12 h-12 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center text-xl font-bold border border-blue-500/30">
+                    <i class="fa-solid fa-file-signature"></i>
+                </div>
+            </div>
+
+            <div class="glass-panel p-5 rounded-2xl border border-slate-200 flex items-center justify-between">
+                <div>
+                    <span class="text-xs font-semibold text-slate-500 block uppercase">Active Exams</span>
+                    <p id="metric-active-exams" class="text-3xl font-black text-emerald-600 mt-1">0</p>
+                </div>
+                <div class="w-12 h-12 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xl font-bold border border-emerald-500/30">
+                    <i class="fa-solid fa-play"></i>
+                </div>
+            </div>
+
+            <div class="glass-panel p-5 rounded-2xl border border-slate-200 flex items-center justify-between">
+                <div>
+                    <span class="text-xs font-semibold text-slate-500 block uppercase">Completed</span>
+                    <p id="metric-completed-exams" class="text-3xl font-black text-amber-600 mt-1">0</p>
+                </div>
+                <div class="w-12 h-12 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-xl font-bold border border-amber-500/30">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+            </div>
+
+            <div class="glass-panel p-5 rounded-2xl border border-slate-200 flex items-center justify-between">
+                <div>
+                    <span class="text-xs font-semibold text-slate-500 block uppercase">Average Score</span>
+                    <p id="metric-avg-score" class="text-3xl font-black text-purple-600 mt-1">0%</p>
+                </div>
+                <div class="w-12 h-12 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center text-xl font-bold border border-purple-500/30">
+                    <i class="fa-solid fa-chart-line"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Content Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Active Examinations Summary List -->
+            <div class="lg:col-span-2 glass-panel p-6 rounded-3xl border border-slate-200 shadow-xl">
+                <div class="flex items-center justify-between mb-6 pb-3 border-b border-slate-200">
+                    <h3 class="text-lg font-bold text-slate-900 font-heading flex items-center gap-2">
+                        <i class="fa-solid fa-layer-group text-indigo-600"></i> Scheduled & Active Examinations
+                    </h3>
+                    <a href="examinations.html" class="text-xs text-indigo-400 hover:underline font-semibold">View All</a>
+                </div>
+                <div id="active-exams-list" class="space-y-4">
+                    <!-- Rendered by JS -->
+                </div>
+            </div>
+
+            <!-- Recent System Activity Log Stream -->
+            <div class="glass-panel p-6 rounded-3xl border border-slate-200 shadow-xl">
+                <h3 class="text-lg font-bold text-slate-900 font-heading mb-4 pb-3 border-b border-slate-200 flex items-center gap-2">
+                    <i class="fa-solid fa-clock-rotate-left text-indigo-600"></i> Audit Activity Logs
+                </h3>
+                <div id="recent-activity-container" class="space-y-2 max-h-[420px] overflow-y-auto pr-1">
+                    <!-- Rendered by JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../js/utils.js"></script>
+    <!-- Firebase Web SDK v10 (Compat Mode) -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics-compat.js"></script>
+    <script src="../js/firebase-config.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/exam.js"></script>
+    <script src="../js/admin.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!window.TCISAuth.requireAdminAuth()) return;
+            window.TCISAdmin.renderAdminNavigation('dashboard');
+            window.TCISAdmin.renderDashboardMetrics();
+
+            // Render active exams summary
+            const exams = window.TCISExam.getAllExams();
+            const listEl = document.getElementById('active-exams-list');
+            if (listEl) {
+                if (exams.length === 0) {
+                    listEl.innerHTML = `<p class="text-xs text-slate-500 text-center py-6">No examinations created yet.</p>`;
+                } else {
+                    listEl.innerHTML = exams.map(e => `
+                        <div class="p-4 rounded-2xl bg-white border border-slate-200 flex items-center justify-between hover:shadow-md transition-shadow">
+                            <div>
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="px-2.5 py-0.5 rounded text-[10px] font-bold ${
+                                        e.status === 'Open' ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-slate-100 text-slate-500'
+                                    }">${e.status}</span>
+                                    <span class="text-xs text-slate-500 font-mono">${e.code}</span>
+                                </div>
+                                <h4 class="text-sm font-bold text-slate-900">${window.TCISUtils.escapeHTML(e.title)}</h4>
+                                <p class="text-xs text-slate-500 mt-0.5">${e.durationMinutes} Mins • ${e.totalMarks} Total Marks</p>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <a href="exam-builder.html?id=${e.id}" class="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs transition-colors" title="Edit Exam">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </a>
+                                <a href="monitoring.html" class="p-2 rounded-xl bg-indigo-50 hover:bg-indigo-600 text-indigo-600 hover:text-white text-xs transition-colors" title="Monitor Live">
+                                    <i class="fa-solid fa-video"></i>
+                                </a>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            }
+        });
+    </script>
+</body>
+</html>
+
+
+

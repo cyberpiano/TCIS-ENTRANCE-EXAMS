@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subject Categories - TCIS Entrance Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex">
+
+    <div id="admin-sidebar-container"></div>
+
+    <div class="flex-1 ml-64 p-8 overflow-y-auto">
+        <div class="flex items-center justify-between mb-8 pb-4 border-b border-slate-200">
+            <div>
+                <h1 class="text-3xl font-extrabold text-slate-900 font-heading">Subject Management</h1>
+                <p class="text-slate-500 text-xs mt-1">Organize examination subjects and curriculum categories.</p>
+            </div>
+            <button onclick="openAddSubjectModal()" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-lg shadow-indigo-600/30 flex items-center gap-2">
+                <i class="fa-solid fa-plus"></i> Add Subject
+            </button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="subjects-grid">
+            <!-- Subject Cards rendered by JS -->
+        </div>
+    </div>
+
+    <!-- Subject Modal -->
+    <div id="subject-modal" class="hidden fixed inset-0 z-50 bg-slate-50/70 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl border border-slate-200 max-w-md w-full p-6 shadow-2xl space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+                <h3 class="text-lg font-bold text-slate-900 font-heading">Add Subject Category</h3>
+                <button onclick="closeSubjectModal()" class="text-slate-500 hover:text-slate-900"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="subject-form" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">Subject Name *</label>
+                    <input type="text" id="sub-name" required placeholder="e.g. Physics" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-xs">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">Subject Code</label>
+                    <input type="text" id="sub-code" placeholder="e.g. PHY" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-xs uppercase">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 mb-1">Description</label>
+                    <textarea id="sub-desc" rows="3" placeholder="Subject scope details..." class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-xs"></textarea>
+                </div>
+                <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-200">
+                    <button type="button" onclick="closeSubjectModal()" class="px-4 py-2 rounded-xl border border-slate-700 text-slate-600 text-xs">Cancel</button>
+                    <button type="submit" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs">Save Subject</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="../js/utils.js"></script>
+    <!-- Firebase Web SDK v10 (Compat Mode) -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics-compat.js"></script>
+    <script src="../js/firebase-config.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/admin.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!window.TCISAuth.requireAdminAuth()) return;
+            window.TCISAdmin.renderAdminNavigation('subjects');
+            renderSubjects();
+        });
+
+        function renderSubjects() {
+            const list = window.TCISDB.getCollection('subjects');
+            const grid = document.getElementById('subjects-grid');
+            if (!grid) return;
+
+            grid.innerHTML = list.map(sub => `
+                <div class="glass-panel p-6 rounded-3xl border border-slate-200 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="px-3 py-1 rounded-lg bg-indigo-500/20 text-indigo-400 font-mono font-bold text-xs border border-indigo-500/30">${sub.code || 'SUB'}</span>
+                            <button onclick="deleteSubject('${sub.id}')" class="text-slate-500 hover:text-rose-400"><i class="fa-solid fa-trash text-xs"></i></button>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-900 font-heading mb-2">${window.TCISUtils.escapeHTML(sub.name)}</h3>
+                        <p class="text-xs text-slate-500 leading-relaxed">${window.TCISUtils.escapeHTML(sub.description || 'No description.')}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function openAddSubjectModal() { document.getElementById('subject-modal').classList.remove('hidden'); }
+        function closeSubjectModal() { document.getElementById('subject-modal').classList.add('hidden'); }
+
+        document.getElementById('subject-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = document.getElementById('sub-name').value;
+            const code = document.getElementById('sub-code').value;
+            const desc = document.getElementById('sub-desc').value;
+
+            const newSub = {
+                id: window.TCISUtils.generateUniqueId('SUB'),
+                name: name,
+                code: code || name.substring(0, 3).toUpperCase(),
+                description: desc
+            };
+
+            window.TCISDB.upsertItem('subjects', 'id', newSub);
+            window.TCISUtils.showToast('Subject created!', 'success');
+            closeSubjectModal();
+            renderSubjects();
+        });
+
+        function deleteSubject(id) {
+            window.TCISDB.deleteItem('subjects', 'id', id);
+            window.TCISUtils.showToast('Subject deleted.', 'info');
+            renderSubjects();
+        }
+    </script>
+</body>
+</html>
+
+
+
+

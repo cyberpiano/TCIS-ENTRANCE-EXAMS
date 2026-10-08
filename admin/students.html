@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Management - TCIS Entrance Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex">
+
+    <div id="admin-sidebar-container"></div>
+
+    <div class="flex-1 ml-64 p-8 overflow-y-auto">
+        
+        <!-- Header & Action Bar -->
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8 pb-4 border-b border-slate-200">
+            <div>
+                <h1 class="text-3xl font-extrabold text-slate-900 font-heading">Student Management</h1>
+                <p class="text-slate-500 text-xs mt-1">Register, import, manage, and monitor prospective student examination profiles.</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <button onclick="window.TCISStudent.downloadSampleCSV()" class="px-4 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-600 font-semibold text-xs transition-all flex items-center gap-2">
+                    <i class="fa-solid fa-file-arrow-down text-indigo-400"></i> Sample CSV
+                </button>
+                <button onclick="openImportModal()" class="px-4 py-2.5 rounded-xl border border-indigo-500/40 bg-indigo-600/20 hover:bg-indigo-600 text-indigo-300 hover:text-white font-semibold text-xs transition-all flex items-center gap-2">
+                    <i class="fa-solid fa-file-csv"></i> Import CSV
+                </button>
+                <button onclick="exportStudentsCSV()" class="px-4 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-600 font-semibold text-xs transition-all flex items-center gap-2">
+                    <i class="fa-solid fa-file-export"></i> Export CSV
+                </button>
+                <button onclick="openAddStudentModal()" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-lg shadow-indigo-600/30 transition-all flex items-center gap-2">
+                    <i class="fa-solid fa-user-plus"></i> Add Student
+                </button>
+            </div>
+        </div>
+
+        <!-- Filter & Search Controls -->
+        <div class="glass-panel p-4 rounded-2xl border border-slate-200 mb-6 flex flex-col sm:flex-row items-center gap-4">
+            <div class="relative flex-1 w-full">
+                <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-500">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </span>
+                <input type="text" id="search-input" onkeyup="filterStudentsTable()" placeholder="Search by name, email, or Student ID..." class="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-900 placeholder-slate-500 text-xs focus:outline-none focus:border-indigo-500">
+            </div>
+            <select id="filter-program" onchange="filterStudentsTable()" class="bg-white text-black text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-500 w-full sm:w-48">
+                <option value="" class="text-black bg-white">All Programs/Classes</option>
+                <option value="Grade 10 Admission" class="text-black bg-white">Grade 10 Admission</option>
+                <option value="Grade 11 Admission" class="text-black bg-white">Grade 11 Admission</option>
+                <option value="Grade 12 Admission" class="text-black bg-white">Grade 12 Admission</option>
+            </select>
+            <select id="filter-status" onchange="filterStudentsTable()" class="bg-white text-black text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-500 w-full sm:w-40">
+                <option value="" class="text-black bg-white">All Statuses</option>
+                <option value="Assigned" class="text-black bg-white">Assigned</option>
+                <option value="In Progress" class="text-black bg-white">In Progress</option>
+                <option value="Completed" class="text-black bg-white">Completed</option>
+                <option value="Unassigned" class="text-black bg-white">Unassigned</option>
+            </select>
+        </div>
+
+        <!-- Students Data Table -->
+        <div class="glass-panel rounded-3xl border border-slate-200 overflow-hidden shadow-2xl">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-50/80 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                            <th class="p-4 pl-6">Student ID / Name</th>
+                            <th class="p-4">Contact & Email</th>
+                            <th class="p-4">Program / Class</th>
+                            <th class="p-4">Passkey</th>
+                            <th class="p-4">Exam Status</th>
+                            <th class="p-4">Account Status</th>
+                            <th class="p-4 pr-6 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="students-table-body" class="divide-y divide-slate-200/60 text-xs text-slate-600">
+                        <!-- Rendered by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add / Edit Student Modal -->
+    <div id="student-modal" class="hidden fixed inset-0 z-50 bg-slate-50/70 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl border border-slate-200 max-w-lg w-full p-6 shadow-2xl space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+                <h3 id="modal-title" class="text-lg font-bold text-slate-900 font-heading">Add New Student</h3>
+                <button onclick="closeStudentModal()" class="text-slate-500 hover:text-slate-900">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <form id="student-form" class="space-y-4">
+                <input type="hidden" id="edit-student-id">
+                <div class="grid grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-[11px] font-semibold text-slate-500 mb-1">First Name *</label>
+                        <input type="text" id="m-first-name" required class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-xs">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-semibold text-slate-500 mb-1">Middle Name</label>
+                        <input type="text" id="m-middle-name" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-xs">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-semibold text-slate-500 mb-1">Last Name *</label>
+                        <input type="text" id="m-last-name" required class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-xs">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-[11px] font-semibold text-slate-500 mb-1">Email Address *</label>
+                        <input type="email" id="m-email" required class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-xs">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-semibold text-slate-500 mb-1">Phone Number</label>
+                        <input type="text" id="m-phone" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-xs">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-[11px] font-semibold text-slate-500 mb-1">Date of Birth</label>
+                        <input type="date" id="m-dob" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 text-xs">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-semibold text-slate-500 mb-1">Gender</label>
+                        <select id="m-gender" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-black text-xs">
+                            <option value="Male" class="text-black bg-white">Male</option>
+                            <option value="Female" class="text-black bg-white">Female</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-semibold text-slate-500 mb-1">Program / Class</label>
+                        <select id="m-program" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-black text-xs">
+                            <option value="Grade 10 Admission" class="text-black bg-white">Grade 10 Admission</option>
+                            <option value="Grade 11 Admission" class="text-black bg-white">Grade 11 Admission</option>
+                            <option value="Grade 12 Admission" class="text-black bg-white">Grade 12 Admission</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-200">
+                    <button type="button" onclick="closeStudentModal()" class="px-4 py-2 rounded-xl border border-slate-700 text-slate-600 text-xs font-medium">Cancel</button>
+                    <button type="submit" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-lg shadow-indigo-600/30">Save Student</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- CSV Import Modal -->
+    <div id="import-modal" class="hidden fixed inset-0 z-50 bg-slate-50/70 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl border border-slate-200 max-w-md w-full p-6 shadow-2xl space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+                <h3 class="text-lg font-bold text-slate-900 font-heading">Import Students from CSV</h3>
+                <button onclick="closeImportModal()" class="text-slate-500 hover:text-slate-900"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="space-y-3 text-xs text-slate-600">
+                <p>Upload a .csv file containing student records. Use the standard template for field mapping.</p>
+                <input type="file" id="csv-file-input" accept=".csv" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-500">
+            </div>
+            <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-200">
+                <button onclick="closeImportModal()" class="px-4 py-2 rounded-xl border border-slate-700 text-slate-600 text-xs font-medium">Cancel</button>
+                <button onclick="processCSVImport()" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs">Process Import</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../js/utils.js"></script>
+    <!-- Firebase Web SDK v10 (Compat Mode) -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics-compat.js"></script>
+    <script src="../js/firebase-config.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/student.js"></script>
+    <script src="../js/admin.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!window.TCISAuth.requireAdminAuth()) return;
+            window.TCISAdmin.renderAdminNavigation('students');
+            renderStudentsTable();
+        });
+
+        function renderStudentsTable(studentsList) {
+            const list = studentsList || window.TCISStudent.getAllStudents();
+            const tbody = document.getElementById('students-table-body');
+            if (!tbody) return;
+
+            if (list.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center p-8 text-slate-500">No student records found.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = list.map(s => `
+                <tr class="hover:bg-white/60 transition-colors">
+                    <td class="p-4 pl-6">
+                        <span class="font-bold text-slate-900 block">${window.TCISUtils.escapeHTML(s.firstName)} ${window.TCISUtils.escapeHTML(s.lastName)}</span>
+                        <span class="text-[10px] text-indigo-400 font-mono">${s.studentId}</span>
+                    </td>
+                    <td class="p-4">
+                        <span class="block font-medium text-slate-600">${window.TCISUtils.escapeHTML(s.email)}</span>
+                        <span class="text-[10px] text-slate-500">${window.TCISUtils.escapeHTML(s.phone || 'N/A')}</span>
+                    </td>
+                    <td class="p-4 font-medium text-slate-600">${window.TCISUtils.escapeHTML(s.program)}</td>
+                    <td class="p-4 font-mono font-bold text-amber-400">${s.invitationPasskey || 'N/A'}</td>
+                    <td class="p-4">
+                        <span class="px-2.5 py-1 rounded-full text-[10px] font-bold ${
+                            s.examStatus === 'Completed' ? 'bg-emerald-500/20 text-emerald-400' : (s.examStatus === 'Assigned' ? 'bg-blue-500/20 text-blue-400' : 'bg-slate-100 text-slate-500')
+                        }">${s.examStatus}</span>
+                    </td>
+                    <td class="p-4">
+                        <span class="px-2.5 py-1 rounded-full text-[10px] font-bold ${s.status === 'Active' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'}">${s.status}</span>
+                    </td>
+                    <td class="p-4 pr-6 text-right">
+                        <button onclick="editStudent('${s.studentId}')" class="text-indigo-400 hover:text-indigo-300 mr-3" title="Edit"><i class="fa-solid fa-pen"></i></button>
+                        <button onclick="deleteStudent('${s.studentId}')" class="text-rose-400 hover:text-rose-300" title="Delete"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function filterStudentsTable() {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            const program = document.getElementById('filter-program').value;
+            const status = document.getElementById('filter-status').value;
+
+            const all = window.TCISStudent.getAllStudents();
+            const filtered = all.filter(s => {
+                const matchQuery = s.firstName.toLowerCase().includes(query) || s.lastName.toLowerCase().includes(query) || s.studentId.toLowerCase().includes(query) || s.email.toLowerCase().includes(query);
+                const matchProgram = !program || s.program === program;
+                const matchStatus = !status || s.examStatus === status;
+                return matchQuery && matchProgram && matchStatus;
+            });
+            renderStudentsTable(filtered);
+        }
+
+        function openAddStudentModal() {
+            document.getElementById('modal-title').innerText = "Add New Student";
+            document.getElementById('edit-student-id').value = "";
+            document.getElementById('student-form').reset();
+            document.getElementById('student-modal').classList.remove('hidden');
+        }
+
+        function closeStudentModal() {
+            document.getElementById('student-modal').classList.add('hidden');
+        }
+
+        document.getElementById('student-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const editId = document.getElementById('edit-student-id').value;
+
+            const data = {
+                firstName: document.getElementById('m-first-name').value,
+                middleName: document.getElementById('m-middle-name').value,
+                lastName: document.getElementById('m-last-name').value,
+                email: document.getElementById('m-email').value,
+                phone: document.getElementById('m-phone').value,
+                dob: document.getElementById('m-dob').value,
+                gender: document.getElementById('m-gender').value,
+                program: document.getElementById('m-program').value
+            };
+
+            if (editId) {
+                window.TCISStudent.updateStudent(editId, data);
+                window.TCISUtils.showToast('Student details updated!', 'success');
+            } else {
+                window.TCISStudent.addStudent(data);
+                window.TCISUtils.showToast('New student created!', 'success');
+            }
+            closeStudentModal();
+            renderStudentsTable();
+        });
+
+        function editStudent(id) {
+            const s = window.TCISDB.getItem('students', 'studentId', id);
+            if (!s) return;
+
+            document.getElementById('modal-title').innerText = "Edit Student Profile";
+            document.getElementById('edit-student-id').value = s.studentId;
+            document.getElementById('m-first-name').value = s.firstName;
+            document.getElementById('m-middle-name').value = s.middleName || '';
+            document.getElementById('m-last-name').value = s.lastName;
+            document.getElementById('m-email').value = s.email;
+            document.getElementById('m-phone').value = s.phone || '';
+            document.getElementById('m-dob').value = s.dob || '';
+            document.getElementById('m-gender').value = s.gender || 'Male';
+            document.getElementById('m-program').value = s.program || 'Grade 10 Admission';
+
+            document.getElementById('student-modal').classList.remove('hidden');
+        }
+
+        function deleteStudent(id) {
+            window.TCISUtils.showConfirmModal({
+                title: "Delete Student",
+                message: `Are you sure you want to delete student ${id}? This action cannot be undone.`,
+                confirmText: "Delete",
+                type: "danger",
+                onConfirm: () => {
+                    window.TCISStudent.deleteStudent(id);
+                    window.TCISUtils.showToast('Student removed.', 'info');
+                    renderStudentsTable();
+                }
+            });
+        }
+
+        function exportStudentsCSV() {
+            const list = window.TCISStudent.getAllStudents();
+            window.TCISUtils.exportToCSV('TCIS_Student_Roster.csv', list);
+        }
+
+        function openImportModal() { document.getElementById('import-modal').classList.remove('hidden'); }
+        function closeImportModal() { document.getElementById('import-modal').classList.add('hidden'); }
+
+        function processCSVImport() {
+            const fileInput = document.getElementById('csv-file-input');
+            if (!fileInput.files || !fileInput.files[0]) {
+                window.TCISUtils.showToast('Please select a CSV file to import.', 'warning');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const csvText = e.target.result;
+                const parsed = window.TCISUtils.parseCSV(csvText);
+                const res = window.TCISStudent.importStudentsFromCSV(parsed);
+
+                if (res.importedCount > 0) {
+                    window.TCISUtils.showToast(`Successfully imported ${res.importedCount} student records!`, 'success');
+                }
+                if (res.errors.length > 0) {
+                    window.TCISUtils.showToast(`Import warnings: ${res.errors[0]}`, 'warning');
+                }
+                closeImportModal();
+                renderStudentsTable();
+            };
+            reader.readAsText(fileInput.files[0]);
+        }
+    </script>
+</body>
+</html>
+
+
+
+

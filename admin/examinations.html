@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Examinations - TCIS Entrance Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex">
+
+    <div id="admin-sidebar-container"></div>
+
+    <div class="flex-1 ml-64 p-8 overflow-y-auto">
+        <div class="flex items-center justify-between mb-8 pb-4 border-b border-slate-200">
+            <div>
+                <h1 class="text-3xl font-extrabold text-slate-900 font-heading">Examinations Management</h1>
+                <p class="text-slate-500 text-xs mt-1">Configure, build, schedule, and publish entrance examinations.</p>
+            </div>
+            <a href="exam-builder.html" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-lg shadow-indigo-600/30 flex items-center gap-2">
+                <i class="fa-solid fa-plus"></i>
+                <span>Launch Exam Builder</span>
+            </a>
+        </div>
+
+        <div class="glass-panel rounded-3xl border border-slate-200 overflow-hidden shadow-2xl">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-slate-50/80 border-b border-slate-200 text-[11px] font-bold uppercase text-slate-500">
+                        <th class="p-4 pl-6">Exam Title / Code</th>
+                        <th class="p-4">Subject</th>
+                        <th class="p-4">Duration</th>
+                        <th class="p-4">Marks & Pass Mark</th>
+                        <th class="p-4">Status</th>
+                        <th class="p-4 pr-6 text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="exams-table-body" class="divide-y divide-slate-200/60 text-xs text-slate-600">
+                    <!-- Rendered by JS -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="../js/utils.js"></script>
+    <!-- Firebase Web SDK v10 (Compat Mode) -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics-compat.js"></script>
+    <script src="../js/firebase-config.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/exam.js"></script>
+    <script src="../js/admin.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!window.TCISAuth.requireAdminAuth()) return;
+            window.TCISAdmin.renderAdminNavigation('examinations');
+            (window.TCISDB.syncReady || Promise.resolve()).then(() => {
+                renderExamsTable();
+            }).catch(() => {
+                renderExamsTable();
+            });
+        });
+
+        function renderExamsTable() {
+            const list = window.TCISExam.getAllExams();
+            const tbody = document.getElementById('exams-table-body');
+            if (!tbody) return;
+
+            if (list.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center p-8 text-slate-500">No examinations configured yet.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = list.map(e => `
+                <tr class="hover:bg-white/60 transition-colors">
+                    <td class="p-4 pl-6">
+                        <span class="font-bold text-slate-900 block">${window.TCISUtils.escapeHTML(e.title)}</span>
+                        <span class="text-[10px] text-indigo-400 font-mono">${e.code}</span>
+                    </td>
+                    <td class="p-4 font-medium text-slate-600">${window.TCISUtils.escapeHTML(e.subject)}</td>
+                    <td class="p-4 font-bold text-amber-400">${e.durationMinutes} Mins</td>
+                    <td class="p-4">Total: ${e.totalMarks} | Pass: ${e.passMark}</td>
+                    <td class="p-4">
+                        <span class="px-2.5 py-1 rounded-full text-[10px] font-bold ${
+                            e.status === 'Open' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-100 text-slate-500'
+                        }">${e.status}</span>
+                    </td>
+                    <td class="p-4 pr-6 text-right">
+                        <a href="exam-builder.html?id=${e.id}" class="text-indigo-400 hover:text-indigo-300 mr-3" title="Edit Builder"><i class="fa-solid fa-sliders"></i> Edit</a>
+                        <button onclick="deleteExam('${e.id}')" class="text-rose-400 hover:text-rose-300" title="Delete"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function deleteExam(id) {
+            window.TCISUtils.showConfirmModal({
+                title: "Delete Examination",
+                message: "Are you sure you want to delete this examination?",
+                confirmText: "Delete",
+                type: "danger",
+                onConfirm: () => {
+                    window.TCISExam.deleteExam(id);
+                    window.TCISUtils.showToast('Examination deleted.', 'info');
+                    renderExamsTable();
+                }
+            });
+        }
+    </script>
+</body>
+</html>
+
+
+
+

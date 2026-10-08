@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Monitoring - TCIS Entrance Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../assets/css/main.css">
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex">
+
+    <div id="admin-sidebar-container"></div>
+
+    <div class="flex-1 ml-64 p-8 overflow-y-auto">
+        <div class="flex items-center justify-between mb-8 pb-4 border-b border-slate-200">
+            <div>
+                <h1 class="text-3xl font-extrabold text-slate-900 font-heading">Live Proctoring Monitoring</h1>
+                <p class="text-slate-500 text-xs mt-1">Real-time surveillance dashboard, camera frame snapshot stream, and violation risk analysis.</p>
+            </div>
+            <button onclick="renderMonitoringTable()" class="px-4 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-600 font-semibold text-xs transition-all flex items-center gap-2">
+                <i class="fa-solid fa-rotate text-indigo-400"></i> Refresh Stream
+            </button>
+        </div>
+
+        <!-- Monitoring Sessions Table -->
+        <div class="glass-panel rounded-3xl border border-slate-200 overflow-hidden shadow-2xl">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-slate-50/80 border-b border-slate-200 text-[11px] font-bold uppercase text-slate-500">
+                        <th class="p-4 pl-6">Student Name / ID</th>
+                        <th class="p-4">Examination</th>
+                        <th class="p-4">Fullscreen Exits</th>
+                        <th class="p-4">Tab Switches</th>
+                        <th class="p-4">Risk Level</th>
+                        <th class="p-4 pr-6 text-right">Proctor Evidence</th>
+                    </tr>
+                </thead>
+                <tbody id="monitoring-table-body" class="divide-y divide-slate-200/60 text-xs text-slate-600">
+                    <!-- Rendered by JS -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Evidence & Snapshots Gallery Modal -->
+    <div id="evidence-modal" class="hidden fixed inset-0 z-50 bg-slate-50/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl border border-slate-200 max-w-3xl w-full p-6 shadow-2xl space-y-4 max-h-[85vh] overflow-y-auto">
+            <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+                <div>
+                    <h3 id="modal-student-name" class="text-lg font-bold text-slate-900 font-heading">Student Evidence Logs</h3>
+                    <p id="modal-student-id" class="text-xs text-indigo-400 font-mono"></p>
+                </div>
+                <button onclick="closeEvidenceModal()" class="text-slate-500 hover:text-slate-900"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <!-- Snapshots Gallery -->
+            <div>
+                <h4 class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-3">Chronological Camera Snapshots</h4>
+                <div id="snapshot-gallery-grid" class="grid grid-cols-3 sm:grid-cols-4 gap-3 max-h-56 overflow-y-auto p-2 bg-slate-50 rounded-2xl border border-slate-200">
+                    <!-- Snapshots rendered by JS -->
+                </div>
+            </div>
+
+            <!-- Violation Timeline Log -->
+            <div>
+                <h4 class="text-xs font-bold text-slate-600 uppercase tracking-wider mb-3">Security Violation Log Timeline</h4>
+                <div id="violation-timeline-list" class="space-y-2 max-h-48 overflow-y-auto p-2">
+                    <!-- Timeline rendered by JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../js/utils.js"></script>
+    <!-- Firebase Web SDK v10 (Compat Mode) -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics-compat.js"></script>
+    <script src="../js/firebase-config.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/monitoring.js"></script>
+    <script src="../js/admin.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!window.TCISAuth.requireAdminAuth()) return;
+            window.TCISAdmin.renderAdminNavigation('monitoring');
+            renderMonitoringTable();
+        });
+
+        function renderMonitoringTable() {
+            const sessions = window.TCISDB.getCollection('monitoringSessions');
+            const students = window.TCISDB.getCollection('students');
+            const tbody = document.getElementById('monitoring-table-body');
+            if (!tbody) return;
+
+            if (sessions.length === 0) {
+                // Generate demo row if empty for display
+                tbody.innerHTML = `
+                    <tr class="hover:bg-white/60 transition-colors">
+                        <td class="p-4 pl-6 font-bold text-slate-900">John Doe <span class="text-[10px] text-indigo-400 font-mono block">TCIS-STU-1001</span></td>
+                        <td class="p-4 text-slate-600 font-medium">TCIS 2027 Entrance Examination</td>
+                        <td class="p-4 font-mono font-bold text-amber-400">0</td>
+                        <td class="p-4 font-mono font-bold text-amber-400">0</td>
+                        <td class="p-4"><span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-400">LOW</span></td>
+                        <td class="p-4 pr-6 text-right">
+                            <button onclick="viewEvidence('TCIS-STU-1001', 'John Doe')" class="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs">
+                                <i class="fa-solid fa-camera mr-1"></i> View Snapshots
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = sessions.map(s => {
+                const student = students.find(stu => stu.studentId === s.studentId) || { firstName: 'Student', lastName: s.studentId };
+                return `
+                    <tr class="hover:bg-white/60 transition-colors">
+                        <td class="p-4 pl-6">
+                            <span class="font-bold text-slate-900 block">${window.TCISUtils.escapeHTML(student.firstName)} ${window.TCISUtils.escapeHTML(student.lastName)}</span>
+                            <span class="text-[10px] text-indigo-400 font-mono">${s.studentId}</span>
+                        </td>
+                        <td class="p-4 font-medium text-slate-600">${s.examId}</td>
+                        <td class="p-4 font-mono font-bold text-amber-400">${s.fullscreenExits || 0}</td>
+                        <td class="p-4 font-mono font-bold text-amber-400">${s.tabSwitches || 0}</td>
+                        <td class="p-4">
+                            <span class="px-2.5 py-1 rounded-full text-[10px] font-bold ${
+                                s.riskLevel === 'HIGH' ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30' : (s.riskLevel === 'MEDIUM' ? 'bg-amber-500/20 text-amber-400' : 'bg-emerald-500/20 text-emerald-400')
+                            }">${s.riskLevel || 'LOW'}</span>
+                        </td>
+                        <td class="p-4 pr-6 text-right">
+                            <button onclick="viewEvidence('${s.studentId}', '${student.firstName} ${student.lastName}')" class="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs">
+                                <i class="fa-solid fa-camera mr-1"></i> View Snapshots
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function viewEvidence(studentId, name) {
+            document.getElementById('modal-student-name').innerText = name;
+            document.getElementById('modal-student-id').innerText = studentId;
+
+            const snapshots = window.TCISMonitoring.getStudentSnapshots(studentId);
+            const violations = window.TCISMonitoring.getStudentViolations(studentId);
+
+            const grid = document.getElementById('snapshot-gallery-grid');
+            if (snapshots.length === 0) {
+                grid.innerHTML = `<p class="col-span-4 text-center text-xs text-slate-500 py-4">No snapshots captured yet.</p>`;
+            } else {
+                grid.innerHTML = snapshots.map(img => `
+                    <div class="rounded-xl overflow-hidden bg-white border border-slate-200 text-center">
+                        <img src="${img.imageUrl}" alt="Snapshot" class="w-full aspect-video object-cover">
+                        <span class="text-[9px] text-slate-500 py-1 block">${window.TCISUtils.formatDate(img.timestamp, true)}</span>
+                    </div>
+                `).join('');
+            }
+
+            const vList = document.getElementById('violation-timeline-list');
+            if (violations.length === 0) {
+                vList.innerHTML = `<p class="text-xs text-slate-500 py-2">No security violations recorded.</p>`;
+            } else {
+                vList.innerHTML = violations.map(v => `
+                    <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between text-xs">
+                        <div>
+                            <span class="font-bold text-amber-400 block">${v.type}</span>
+                            <span class="text-slate-500">${window.TCISUtils.escapeHTML(v.description)}</span>
+                        </div>
+                        <span class="text-[10px] text-slate-500">${window.TCISUtils.formatDate(v.timestamp)}</span>
+                    </div>
+                `).join('');
+            }
+
+            document.getElementById('evidence-modal').classList.remove('hidden');
+        }
+
+        function closeEvidenceModal() { document.getElementById('evidence-modal').classList.add('hidden'); }
+    </script>
+</body>
+</html>
+
+
+
+
